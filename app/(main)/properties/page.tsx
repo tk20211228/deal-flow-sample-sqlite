@@ -21,18 +21,34 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { PropertyDetailModal } from "@/components/property-detail-modal";
+
+interface Property {
+  id: number;
+  propertyName: string;
+  roomNumber: string;
+  owner: string;
+  assignee: string;
+  aPrice: number;
+  bPrice: number;
+  profit: number;
+  contractDate: string;
+  settlementDate: string;
+  status: string;
+  bank: string;
+  firm: string;
+}
 
 export default function PropertiesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [view, setView] = useState<"list" | "kanban">("list");
-  const [selectedProperty, setSelectedProperty] = useState<any>(null);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
   // ダミーデータ
-  const properties = [
+  const properties: Property[] = [
     {
       id: 1,
       propertyName: "渋谷区物件 101号室",
@@ -129,7 +145,7 @@ export default function PropertiesPage() {
     "決済完了": filteredProperties.filter(p => p.status === "決済完了"),
   };
 
-  const handlePropertyClick = (property: any) => {
+  const handlePropertyClick = (property: Property) => {
     setSelectedProperty(property);
     setModalOpen(true);
   };

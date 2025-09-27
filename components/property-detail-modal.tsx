@@ -14,10 +14,26 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
+interface Property {
+  id: number;
+  propertyName: string;
+  roomNumber: string;
+  owner: string;
+  assignee: string;
+  aPrice: number;
+  bPrice: number;
+  profit: number;
+  contractDate: string;
+  settlementDate: string;
+  status: string;
+  bank: string;
+  firm: string;
+}
+
 interface PropertyDetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  property?: any;
+  property?: Property | null;
 }
 
 export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDetailModalProps) {
