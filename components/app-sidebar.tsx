@@ -72,6 +72,11 @@ const data = {
       url: "/members",
       icon: IconUsers,
     },
+    {
+      title: "レポート",
+      url: "/reports",
+      icon: IconChartBar,
+    },
   ],
   // navClouds: [
   //   {
