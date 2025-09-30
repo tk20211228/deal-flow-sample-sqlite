@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/libsql/web";
 import * as authSchemas from "./schemas/auth";
-// import * as petSchemas from "./schemas/pet";
+import * as petSchemas from "./schemas/pet";
 
 export const db = drizzle({
   connection: {
@@ -9,6 +9,6 @@ export const db = drizzle({
   },
   schema: {
     ...authSchemas,
-    // ...petSchemas,
+    ...petSchemas,
   },
 });
