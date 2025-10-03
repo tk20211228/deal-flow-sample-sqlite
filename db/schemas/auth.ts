@@ -1,4 +1,5 @@
 import { timestamps } from "@/lib/column-helper";
+import { sql } from "drizzle-orm";
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
@@ -23,6 +24,7 @@ export const sessions = sqliteTable("sessions", {
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
+  activeOrganizationId: text("active_organization_id"),
 });
 
 export const accounts = sqliteTable("accounts", {
@@ -52,4 +54,44 @@ export const verifications = sqliteTable("verifications", {
   value: text("value").notNull(),
   expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
   ...timestamps,
+});
+
+export const organizations = sqliteTable("organizations", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").unique(),
+  logo: text("logo"),
+  // createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  createdAt: timestamps.createdAt,
+  metadata: text("metadata"),
+});
+
+export const members = sqliteTable("members", {
+  id: text("id").primaryKey(),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  role: text("role").default("member").notNull(),
+  // createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  createdAt: timestamps.createdAt,
+});
+
+export const invitations = sqliteTable("invitations", {
+  id: text("id").primaryKey(),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  email: text("email").notNull(),
+  role: text("role"),
+  status: text("status").default("pending").notNull(),
+  // expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp" })
+    .default(sql`(unixepoch())`)
+    .notNull(),
+  inviterId: text("inviter_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
 });

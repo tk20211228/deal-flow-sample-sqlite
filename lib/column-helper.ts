@@ -5,11 +5,11 @@ import { sql } from "drizzle-orm";
 export const id = text("id").primaryKey().$defaultFn(generateId);
 
 export const timestamps = {
-  createdAt: integer("created_at", { mode: "timestamp_ms" })
-    .default(sql`(unixepoch() * 1000)`)
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .default(sql`(unixepoch())`)
     .notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
-    .default(sql`(unixepoch() * 1000)`)
-    .$onUpdate(() => sql`(unixepoch() * 1000)`)
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .default(sql`(unixepoch())`)
+    .$onUpdate(() => sql`(unixepoch())`)
     .notNull(),
 };

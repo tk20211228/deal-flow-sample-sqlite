@@ -15,6 +15,13 @@
       "when": 1759192861183,
       "tag": "0001_skinny_la_nuit",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1759208086250,
+      "tag": "0002_chunky_strong_guy",
+      "breakpoints": true
     }
   ]
 }
