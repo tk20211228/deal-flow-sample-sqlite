@@ -2,20 +2,11 @@
 
 import {
   IconBuildingCommunity,
-  IconCamera,
   IconChartBar,
   IconDashboard,
-  IconDatabase,
-  IconFileAi,
-  IconFileDescription,
   IconFiles,
-  IconFileWord,
-  IconFolder,
-  IconInnerShadowTop,
   IconListDetails,
-  IconReport,
   IconSettings,
-  IconUserPlus,
   IconUsers,
 } from "@tabler/icons-react";
 import * as React from "react";
@@ -35,10 +26,10 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 
+import { User } from "@/app/types/user";
 import Logo from "@/public/logo.svg";
 import Image from "next/image";
 import Link from "next/link";
-import { User } from "@/app/types/user";
 
 const data = {
   user: {
@@ -68,8 +59,8 @@ const data = {
       icon: IconFiles,
     },
     {
-      title: "メンバー管理",
-      url: "/members",
+      title: "組織管理",
+      url: "/organization",
       icon: IconUsers,
     },
     {

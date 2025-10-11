@@ -3,6 +3,7 @@ import { getSessionCookie } from "better-auth/cookies";
 
 const publicRoutes = [
   "/login",
+  "/signup",
   "/register",
   "/forgot-password",
   "/reset-password",

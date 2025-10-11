@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1758542508236,
-      "tag": "0000_lonely_archangel",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1759192861183,
-      "tag": "0001_skinny_la_nuit",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1759208086250,
-      "tag": "0002_chunky_strong_guy",
+      "when": 1760111091329,
+      "tag": "0000_previous_tusk",
       "breakpoints": true
     }
   ]

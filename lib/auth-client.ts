@@ -4,6 +4,7 @@ import {
   anonymousClient,
   inferAdditionalFields,
   organizationClient,
+  usernameClient,
 } from "better-auth/client/plugins";
 import type { auth } from "./auth";
 
@@ -13,5 +14,6 @@ export const authClient = createAuthClient({
     anonymousClient(),
     inferAdditionalFields<typeof auth>(),
     organizationClient(),
+    usernameClient(),
   ],
 });

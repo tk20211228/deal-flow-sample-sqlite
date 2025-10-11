@@ -8,6 +8,7 @@ import {
   IconUserCircle,
 } from "@tabler/icons-react";
 
+import { User } from "@/app/types/user";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -24,16 +25,33 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useTheme } from "next-themes";
-import { ModeSwitcher } from "./mode-switcher";
+import { authClient } from "@/lib/auth-client";
 import { getAvatarUrl } from "@/lib/avatar";
-import { User } from "@/app/types/user";
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
+import { ModeSwitcher } from "./mode-switcher";
 
 export function NavUser({ user }: { user: User }) {
+  const router = useRouter();
   const { isMobile } = useSidebar();
   const { text, url } = getAvatarUrl({
     email: user.email,
   });
+
+  const [isPending, startTransition] = useTransition();
+
+  const handleSignOut = () => {
+    startTransition(async () => {
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            router.push("/login"); // redirect to login page
+          },
+        },
+      });
+    });
+  };
 
   return (
     <SidebarMenu>
@@ -82,21 +100,25 @@ export function NavUser({ user }: { user: User }) {
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <IconUserCircle />
-                Account
+                アカウント設定
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <IconCreditCard />
-                Billing
+                請求
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <IconNotification />
-                Notifications
+                通知
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <IconLogout />
-              Log out
+            <DropdownMenuItem onClick={handleSignOut}>
+              {isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <IconLogout />
+              )}
+              ログアウト
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

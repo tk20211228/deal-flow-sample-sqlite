@@ -1,20 +1,180 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import HeroImage from "../marketing/hero-image";
 import GestLoginButton from "./gest-login-button";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { authClient } from "@/lib/auth-client";
+import { Loader2, AlertCircle, Info } from "lucide-react";
+import Link from "next/link";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const invitationId = searchParams.get("invitation");
+  const errorFromUrl = searchParams.get("error");
+  const isInvitation = !!invitationId;
+
+  // URLのエラーメッセージを処理
+  useEffect(() => {
+    if (errorFromUrl) {
+      switch (errorFromUrl) {
+        case "invalid_invitation":
+          setError("招待が無効です");
+          break;
+        case "invitation_already_accepted":
+          setError("この招待は既に受け入れられています");
+          break;
+        case "invitation_expired":
+          setError("招待の有効期限が切れています");
+          break;
+        default:
+          setError("エラーが発生しました");
+      }
+    }
+  }, [errorFromUrl]);
+
+  // クッキーから保留中の招待を確認
+  useEffect(() => {
+    const checkPendingInvitation = async () => {
+      const cookies = document.cookie.split(";");
+      const pendingInvitation = cookies
+        .find((cookie) => cookie.trim().startsWith("pending_invitation="));
+
+      if (pendingInvitation && !invitationId) {
+        try {
+          const invitationData = JSON.parse(
+            decodeURIComponent(pendingInvitation.split("=")[1])
+          );
+          // メールアドレスを自動セット
+          if (invitationData.email) {
+            setEmail(invitationData.email);
+          }
+        } catch (e) {
+          console.error("Failed to parse pending invitation:", e);
+        }
+      }
+    };
+
+    checkPendingInvitation();
+  }, [invitationId]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      // ログイン
+      const result = await authClient.signIn.email({
+        email,
+        password,
+      });
+
+      if (result.error) {
+        setError(result.error.message || "ログインに失敗しました");
+        setLoading(false);
+        return;
+      }
+
+      // 招待がある場合は受け入れる
+      if (invitationId) {
+        try {
+          const acceptResponse = await fetch("/api/auth/accept-invitation", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ invitationId }),
+          });
+
+          const acceptResult = await acceptResponse.json();
+
+          if (acceptResult.success) {
+            router.push(`/organization/${acceptResult.organizationId}`);
+          } else {
+            router.push("/dashboard");
+          }
+        } catch (error) {
+          console.error("Failed to accept invitation:", error);
+          router.push("/dashboard");
+        }
+      } else {
+        // 保留中の招待を確認
+        const cookies = document.cookie.split(";");
+        const pendingInvitationCookie = cookies
+          .find((cookie) => cookie.trim().startsWith("pending_invitation="));
+
+        if (pendingInvitationCookie) {
+          try {
+            const invitationData = JSON.parse(
+              decodeURIComponent(pendingInvitationCookie.split("=")[1])
+            );
+
+            const acceptResponse = await fetch("/api/auth/accept-invitation", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ invitationId: invitationData.id }),
+            });
+
+            const acceptResult = await acceptResponse.json();
+
+            if (acceptResult.success) {
+              // クッキーを削除
+              document.cookie = "pending_invitation=; path=/; max-age=0";
+              router.push(`/organization/${acceptResult.organizationId}`);
+              return;
+            }
+          } catch (error) {
+            console.error("Failed to process pending invitation:", error);
+          }
+        }
+
+        router.push("/dashboard");
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "ログイン中にエラーが発生しました");
+      setLoading(false);
+    }
+  };
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
+      {isInvitation && (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            組織への招待を受けています。ログインして参加するか、
+            <Link
+              href={`/signup?invitation=${invitationId}`}
+              className="underline underline-offset-2 ml-1"
+            >
+              新規アカウントを作成
+            </Link>
+            してください。
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8">
+          <form onSubmit={handleSubmit} className="p-6 md:p-8">
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-xl font-bold">ようこそ</h1>
@@ -22,13 +182,24 @@ export function LoginForm({
                   あなたのアカウントにログインしてください
                 </p>
               </div>
+
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
               <div className="grid gap-3">
                 <Label htmlFor="email">メールアドレス</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="example@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={loading}
                 />
               </div>
               <div className="grid gap-3">
@@ -41,11 +212,38 @@ export function LoginForm({
                     パスワードをお忘れですか？
                   </a>
                 </div>
-                <Input id="password" type="password" required />
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                />
               </div>
-              {/* <Button type="submit" className="w-full">
-                Login
-              </Button> */}
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ログイン中...
+                  </>
+                ) : (
+                  "ログイン"
+                )}
+              </Button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    または
+                  </span>
+                </div>
+              </div>
+
               <GestLoginButton />
               <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
                 <span className="bg-card text-muted-foreground relative z-10 px-2">
@@ -83,9 +281,12 @@ export function LoginForm({
               </div>
               <div className="text-center text-sm">
                 アカウントをお持ちでないですか？{" "}
-                <a href="#" className="underline underline-offset-4">
+                <Link
+                  href={isInvitation ? `/signup?invitation=${invitationId}` : "/signup"}
+                  className="underline underline-offset-4"
+                >
                   新規登録
-                </a>
+                </Link>
               </div>
             </div>
           </form>

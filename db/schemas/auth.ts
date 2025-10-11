@@ -1,5 +1,4 @@
 import { timestamps } from "@/lib/column-helper";
-import { sql } from "drizzle-orm";
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
@@ -12,11 +11,13 @@ export const users = sqliteTable("users", {
   image: text("image"),
   ...timestamps,
   isAnonymous: integer("is_anonymous", { mode: "boolean" }),
+  username: text("username").unique(),
+  displayUsername: text("display_username"),
 });
 
 export const sessions = sqliteTable("sessions", {
   id: text("id").primaryKey(),
-  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
   token: text("token").notNull().unique(),
   ...timestamps,
   ipAddress: text("ip_address"),
@@ -38,10 +39,10 @@ export const accounts = sqliteTable("accounts", {
   refreshToken: text("refresh_token"),
   idToken: text("id_token"),
   accessTokenExpiresAt: integer("access_token_expires_at", {
-    mode: "timestamp",
+    mode: "timestamp_ms",
   }),
   refreshTokenExpiresAt: integer("refresh_token_expires_at", {
-    mode: "timestamp",
+    mode: "timestamp_ms",
   }),
   scope: text("scope"),
   password: text("password"),
@@ -52,7 +53,7 @@ export const verifications = sqliteTable("verifications", {
   id: text("id").primaryKey(),
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
-  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
   ...timestamps,
 });
 
@@ -61,7 +62,6 @@ export const organizations = sqliteTable("organizations", {
   name: text("name").notNull(),
   slug: text("slug").unique(),
   logo: text("logo"),
-  // createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   createdAt: timestamps.createdAt,
   metadata: text("metadata"),
 });
@@ -75,7 +75,6 @@ export const members = sqliteTable("members", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   role: text("role").default("member").notNull(),
-  // createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   createdAt: timestamps.createdAt,
 });
 
@@ -87,10 +86,7 @@ export const invitations = sqliteTable("invitations", {
   email: text("email").notNull(),
   role: text("role"),
   status: text("status").default("pending").notNull(),
-  // expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
-  expiresAt: integer("expires_at", { mode: "timestamp" })
-    .default(sql`(unixepoch())`)
-    .notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
   inviterId: text("inviter_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),

@@ -1,10 +1,10 @@
 "use client";
 
-import Image, { StaticImageData } from "next/image";
-import Hero from "@/public/hero.svg";
 import HeroDark from "@/public/hero-dark.svg";
+import Hero from "@/public/hero.svg";
 import { useTheme } from "next-themes";
-import { useCallback, useEffect, useState } from "react";
+import Image, { StaticImageData } from "next/image";
+import { useEffect, useState } from "react";
 
 export default function HeroImage() {
   const { resolvedTheme } = useTheme();
