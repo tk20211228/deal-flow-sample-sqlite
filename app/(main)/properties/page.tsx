@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -21,143 +21,191 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, AlertCircle, Calendar } from "lucide-react";
 import { PropertyDetailModal } from "@/components/property-detail-modal";
+import { format, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
+import { ja } from "date-fns/locale";
+import { BUSINESS_STATUS, DOCUMENT_STATUS, properties } from "./data/property";
 
-interface Property {
+// 完全な物件データの型定義（要件定義の28項目に基づく） Property は
+export interface Property {
   id: number;
-  propertyName: string;
-  roomNumber: string;
-  owner: string;
-  assignee: string;
-  aPrice: number;
-  bPrice: number;
-  profit: number;
-  contractDate: string;
-  settlementDate: string;
-  status: string;
-  bank: string;
-  firm: string;
+  // 基本情報
+  assignee: string; // 担当
+  propertyName: string; // 物件名
+  roomNumber: string; // 号室
+  ownerName: string; // オーナー名
+  leadType: string; // 名簿種別
+
+  // 金額情報
+  aAmount: number; // A金額（AB間売買価格）
+  exitAmount: number; // 出口金額（BC間売買価格）
+  commission: number; // 仲手等（合計）
+  profit: number; // 利益（自動計算）
+  bcDeposit: number; // BC手付
+
+  // 契約情報
+  contractType: string; // 契約形態
+  aContractDate: string; // A契約日（AB契約日）
+  bcContractDate: string; // BC契約日
+  settlementDate: string; // 決済日
+
+  // 関係者情報
+  buyerCompany: string; // 買取業者
+  bCompany: string; // B会社
+  brokerCompany: string; // 仲介会社
+  mortgageBank: string; // 抵当銀行
+
+  // 口座管理
+  raygetAccount: string; // レイジット口座
+  lifeAccount: string; // ライフ口座
+  msAccount: string; // エムズ口座
+
+  // その他管理項目
+  ownershipTransfer: boolean; // 所変
+  accountTransfer: boolean; // 口振
+  documentSent: boolean; // 送付
+  workplaceDM: boolean; // 勤務先DM
+  transactionLedger: boolean; // 取引台帳
+  managementCancel: boolean; // 管理解約
+  memo: string; // 備考
+
+  // ステータス
+  businessStatus: string; // 業者ステータス（7段階）
+  documentStatus: string; // 書類ステータス（3段階）
 }
 
 export default function PropertiesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [view, setView] = useState<"list" | "kanban">("list");
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [monthFilter, setMonthFilter] = useState(format(new Date(), "yyyy-MM"));
+  const [pageType, setPageType] = useState<
+    "unconfirmed" | "confirmed" | "completed"
+  >("unconfirmed");
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(
+    null
+  );
   const [modalOpen, setModalOpen] = useState(false);
-
-  // ダミーデータ
-  const properties: Property[] = [
-    {
-      id: 1,
-      propertyName: "渋谷区物件 101号室",
-      roomNumber: "101",
-      owner: "山田太郎",
-      assignee: "営業田中",
-      aPrice: 8500000,
-      bPrice: 9350000,
-      profit: 850000,
-      contractDate: "2025-01-15",
-      settlementDate: "2025-02-15",
-      status: "BC確定",
-      bank: "三井住友銀行",
-      firm: "株式会社A",
-    },
-    {
-      id: 2,
-      propertyName: "新宿区物件 202号室",
-      roomNumber: "202",
-      owner: "鈴木花子",
-      assignee: "営業山田",
-      aPrice: 12000000,
-      bPrice: 13200000,
-      profit: 1200000,
-      contractDate: "2025-01-10",
-      settlementDate: "2025-02-20",
-      status: "決済完了",
-      bank: "みずほ銀行",
-      firm: "株式会社B",
-    },
-    {
-      id: 3,
-      propertyName: "港区物件 303号室",
-      roomNumber: "303",
-      owner: "佐藤次郎",
-      assignee: "営業鈴木",
-      aPrice: 15000000,
-      bPrice: 0,
-      profit: 0,
-      contractDate: "2025-01-20",
-      settlementDate: "",
-      status: "BC未確定",
-      bank: "三菱UFJ銀行",
-      firm: "",
-    },
-    {
-      id: 4,
-      propertyName: "品川区物件 404号室",
-      roomNumber: "404",
-      owner: "田中美咲",
-      assignee: "営業佐藤",
-      aPrice: 9800000,
-      bPrice: 0,
-      profit: 0,
-      contractDate: "2025-01-18",
-      settlementDate: "",
-      status: "書類待ち",
-      bank: "りそな銀行",
-      firm: "",
-    },
-  ];
+  const [editingMemo, setEditingMemo] = useState<{
+    id: number;
+    value: string;
+  } | null>(null);
 
   const formatCurrency = (value: number) => {
-    return value ? `¥${value.toLocaleString()}` : "-";
+    return value ? `¥${(value / 10000).toFixed(0)}万` : "-";
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "決済完了":
-        return "default";
-      case "BC確定":
-        return "outline";
-      case "BC未確定":
-        return "secondary";
-      case "書類待ち":
-        return "secondary";
+  const getBusinessStatusColor = (status: string) => {
+    if (status === BUSINESS_STATUS.SETTLEMENT_COMPLETED) return "default";
+    if (status.includes("BC確定")) return "secondary";
+    if (status === BUSINESS_STATUS.BC_UNCONFIRMED) return "outline";
+    return "outline";
+  };
+
+  const getDocumentStatusColor = (status: string) => {
+    if (status === DOCUMENT_STATUS.ALL_ACQUIRED) return "default";
+    if (status === DOCUMENT_STATUS.ACQUIRING) return "secondary";
+    return "outline";
+  };
+
+  // 月別フィルタリング
+  const filteredByMonth = useMemo(() => {
+    if (!monthFilter) return properties;
+
+    const monthStart = startOfMonth(new Date(monthFilter));
+    const monthEnd = endOfMonth(new Date(monthFilter));
+
+    return properties.filter((property) => {
+      // 決済日が未設定の場合も含める（業者確定前の案件など）
+      if (!property.settlementDate) return true;
+      const settlementDate = new Date(property.settlementDate);
+      return isWithinInterval(settlementDate, {
+        start: monthStart,
+        end: monthEnd,
+      });
+    });
+  }, [monthFilter]);
+
+  // ページタイプ別フィルタリング
+  const filteredByPageType = useMemo(() => {
+    switch (pageType) {
+      case "unconfirmed":
+        return filteredByMonth.filter(
+          (p) => p.businessStatus === BUSINESS_STATUS.BC_UNCONFIRMED
+        );
+      case "confirmed":
+        return filteredByMonth.filter(
+          (p) =>
+            p.businessStatus !== BUSINESS_STATUS.BC_UNCONFIRMED &&
+            p.businessStatus !== BUSINESS_STATUS.SETTLEMENT_COMPLETED
+        );
+      case "completed":
+        return filteredByMonth.filter(
+          (p) => p.businessStatus === BUSINESS_STATUS.SETTLEMENT_COMPLETED
+        );
       default:
-        return "outline";
+        return filteredByMonth;
     }
-  };
+  }, [filteredByMonth, pageType]);
 
-  const filteredProperties = properties.filter(property => {
-    const matchesSearch = property.propertyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         property.owner.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || property.status === statusFilter;
+  // 検索フィルタリング
+  const filteredProperties = filteredByPageType.filter((property) => {
+    const matchesSearch =
+      property.propertyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      property.ownerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      property.buyerCompany?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === "all" || property.businessStatus === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
 
-  // カンバン用にグループ化
-  const kanbanGroups = {
-    "BC未確定": filteredProperties.filter(p => p.status === "BC未確定"),
-    "書類待ち": filteredProperties.filter(p => p.status === "書類待ち"),
-    "BC確定": filteredProperties.filter(p => p.status === "BC確定"),
-    "決済完了": filteredProperties.filter(p => p.status === "決済完了"),
-  };
+  // 集計計算
+  const totals = useMemo(() => {
+    const monthlyProperties = filteredByPageType;
+    return {
+      profit: monthlyProperties.reduce((sum, p) => sum + p.profit, 0),
+      bcDeposit: monthlyProperties.reduce((sum, p) => sum + p.bcDeposit, 0),
+      count: monthlyProperties.length,
+    };
+  }, [filteredByPageType]);
 
   const handlePropertyClick = (property: Property) => {
     setSelectedProperty(property);
     setModalOpen(true);
   };
 
+  const handleMemoSave = (propertyId: number) => {
+    // ここで実際のデータ更新処理を行う
+    console.log("Saving memo for property", propertyId, editingMemo?.value);
+    setEditingMemo(null);
+  };
+
+  // 月選択用のオプション生成（過去6ヶ月から未来3ヶ月）
+  const monthOptions = useMemo(() => {
+    const options = [];
+    const today = new Date();
+    for (let i = -6; i <= 3; i++) {
+      const date = new Date(today.getFullYear(), today.getMonth() + i, 1);
+      options.push({
+        value: format(date, "yyyy-MM"),
+        label: format(date, "yyyy年M月", { locale: ja }),
+      });
+    }
+    return options;
+  }, []);
+
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="flex flex-col gap-6 p-4 lg:p-6">
+    <div className="flex flex-1 flex-col overflow-hidden min-w-0 min-h-0">
+      <div className="flex flex-col gap-4 p-4 lg:p-6 ">
         {/* ページヘッダー */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold">案件管理</h1>
-            <p className="text-sm text-muted-foreground">全案件の一覧と進捗管理</p>
+            <p className="text-sm text-muted-foreground">
+              全案件の一覧と進捗管理
+            </p>
           </div>
           <Button>
             <Plus className="mr-2 h-4 w-4" />
@@ -165,123 +213,262 @@ export default function PropertiesPage() {
           </Button>
         </div>
 
+        {/* 集計情報 */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">
+                当月利益合計
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatCurrency(totals.profit)}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {totals.count}件
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">BC手付合計</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatCurrency(totals.bcDeposit)}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">決済月</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Select value={monthFilter} onValueChange={setMonthFilter}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {monthOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* 検索・フィルター */}
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="物件名・オーナー名で検索"
+              placeholder="物件名・オーナー名・買取業者で検索"
               className="pl-9"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="ステータス" />
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="業者ステータス" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">すべて</SelectItem>
-              <SelectItem value="BC未確定">BC未確定</SelectItem>
-              <SelectItem value="書類待ち">書類待ち</SelectItem>
-              <SelectItem value="BC確定">BC確定</SelectItem>
-              <SelectItem value="決済完了">決済完了</SelectItem>
+              {Object.entries(BUSINESS_STATUS).map(([key, value]) => (
+                <SelectItem key={key} value={value}>
+                  {value}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
 
-        {/* ビュー切り替えタブ */}
-        <Tabs value={view} onValueChange={(v) => setView(v as "list" | "kanban")}>
-          <TabsList>
-            <TabsTrigger value="list">リスト表示</TabsTrigger>
-            <TabsTrigger value="kanban">カンバン表示</TabsTrigger>
+        {/* ページタイプタブ */}
+        <Tabs
+          value={pageType}
+          onValueChange={(v) => setPageType(v as "unconfirmed" | "confirmed" | "completed")}
+          className="flex-1 min-w-0 min-h-0"
+        >
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="unconfirmed">業者確定前</TabsTrigger>
+            <TabsTrigger value="confirmed">業者確定後</TabsTrigger>
+            <TabsTrigger value="completed">決済完了</TabsTrigger>
           </TabsList>
 
-          {/* リスト表示 */}
-          <TabsContent value="list">
-            <Card>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>物件名</TableHead>
-                      <TableHead>オーナー</TableHead>
-                      <TableHead>担当者</TableHead>
-                      <TableHead>A金額</TableHead>
-                      <TableHead>B金額</TableHead>
-                      <TableHead>利益</TableHead>
-                      <TableHead>契約日</TableHead>
-                      <TableHead>決済日</TableHead>
-                      <TableHead>ステータス</TableHead>
-                      <TableHead>操作</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredProperties.map((property) => (
-                      <TableRow key={property.id}>
-                        <TableCell className="font-medium">{property.propertyName}</TableCell>
-                        <TableCell>{property.owner}</TableCell>
-                        <TableCell>{property.assignee}</TableCell>
-                        <TableCell>{formatCurrency(property.aPrice)}</TableCell>
-                        <TableCell>{formatCurrency(property.bPrice)}</TableCell>
-                        <TableCell>{formatCurrency(property.profit)}</TableCell>
-                        <TableCell>{property.contractDate}</TableCell>
-                        <TableCell>{property.settlementDate || "-"}</TableCell>
-                        <TableCell>
-                          <Badge variant={getStatusColor(property.status)}>
-                            {property.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="sm" onClick={() => handlePropertyClick(property)}>詳細</Button>
-                        </TableCell>
+          <TabsContent value={pageType} className="mt-4  w-[1200px]">
+            <Card className="border ">
+              <CardContent className="p-0 relative ">
+                <div className="max-h-[calc(100vh-400px)] relative overflow-hidden">
+                  <Table className="w-full]">
+                    <TableHeader className="sticky top-0 bg-background z-10 border-b">
+                      <TableRow className="text-xs">
+                        <TableHead className="min-w-[70px] sticky left-0 bg-background z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                          担当
+                        </TableHead>
+                        <TableHead className="min-w-[100px]">物件名</TableHead>
+                        <TableHead className="min-w-[80px]">
+                          オーナー名
+                        </TableHead>
+                        <TableHead className="min-w-[80px]">A金額</TableHead>
+                        <TableHead className="min-w-[80px]">出口金額</TableHead>
+                        <TableHead className="min-w-[70px]">仲手等</TableHead>
+                        <TableHead className="min-w-[80px]">利益</TableHead>
+                        <TableHead className="min-w-[80px]">決済日</TableHead>
+                        <TableHead className="min-w-[100px]">
+                          買取業者
+                        </TableHead>
+                        <TableHead className="min-w-[80px]">契約形態</TableHead>
+                        <TableHead className="min-w-[80px]">B会社</TableHead>
+                        <TableHead className="min-w-[90px]">仲介会社</TableHead>
+                        <TableHead className="min-w-[120px]">
+                          業者ステータス
+                        </TableHead>
+                        <TableHead className="min-w-[100px]">
+                          書類ステータス
+                        </TableHead>
+                        <TableHead className="min-w-[150px]">備考</TableHead>
+                        <TableHead className="sticky right-0 bg-background z-20 min-w-[60px] shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                          操作
+                        </TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredProperties.map((property) => (
+                        <TableRow key={property.id} className="text-sm">
+                          <TableCell className="font-medium sticky left-0 bg-background shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                            {property.assignee}
+                          </TableCell>
+                          <TableCell>{property.propertyName}</TableCell>
+                          <TableCell>{property.ownerName}</TableCell>
+                          <TableCell className="text-right">
+                            {formatCurrency(property.aAmount)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {formatCurrency(property.exitAmount)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {formatCurrency(property.commission)}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">
+                            {formatCurrency(property.profit)}
+                          </TableCell>
+                          <TableCell>
+                            {property.settlementDate ? (
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                {format(
+                                  new Date(property.settlementDate),
+                                  "M/d",
+                                  { locale: ja }
+                                )}
+                              </div>
+                            ) : (
+                              "-"
+                            )}
+                          </TableCell>
+                          <TableCell>{property.buyerCompany || "-"}</TableCell>
+                          <TableCell>{property.contractType}</TableCell>
+                          <TableCell>{property.bCompany}</TableCell>
+                          <TableCell>{property.brokerCompany || "-"}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={getBusinessStatusColor(
+                                property.businessStatus
+                              )}
+                              className="text-xs whitespace-nowrap"
+                            >
+                              {property.businessStatus}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={getDocumentStatusColor(
+                                property.documentStatus
+                              )}
+                              className="text-xs whitespace-nowrap"
+                            >
+                              {property.documentStatus}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {editingMemo?.id === property.id ? (
+                              <div className="flex gap-1">
+                                <Input
+                                  value={editingMemo.value}
+                                  onChange={(e) =>
+                                    setEditingMemo({
+                                      ...editingMemo,
+                                      value: e.target.value,
+                                    })
+                                  }
+                                  className="h-7 text-xs"
+                                  onBlur={() => handleMemoSave(property.id)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      handleMemoSave(property.id);
+                                    }
+                                  }}
+                                  autoFocus
+                                />
+                              </div>
+                            ) : (
+                              <div
+                                className="cursor-pointer hover:bg-muted p-1 rounded"
+                                onClick={() =>
+                                  setEditingMemo({
+                                    id: property.id,
+                                    value: property.memo,
+                                  })
+                                }
+                              >
+                                {property.memo || (
+                                  <span className="text-muted-foreground">
+                                    クリックして入力
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell className="sticky right-0 bg-background shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 text-xs px-2"
+                              onClick={() => handlePropertyClick(property)}
+                            >
+                              詳細
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
-
-          {/* カンバン表示 */}
-          <TabsContent value="kanban">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {Object.entries(kanbanGroups).map(([status, items]) => (
-                <Card key={status}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-medium">{status}</CardTitle>
-                      <Badge variant="outline">{items.length}</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {items.map((property) => (
-                        <Card key={property.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handlePropertyClick(property)}>
-                          <CardContent className="p-3">
-                            <div className="space-y-2">
-                              <p className="text-sm font-medium">{property.propertyName}</p>
-                              <p className="text-xs text-muted-foreground">{property.owner}</p>
-                              <div className="flex items-center justify-between">
-                                <p className="text-xs">{formatCurrency(property.aPrice)}</p>
-                                <p className="text-xs text-muted-foreground">{property.assignee}</p>
-                              </div>
-                              {property.settlementDate && (
-                                <p className="text-xs text-muted-foreground">
-                                  決済日: {property.settlementDate}
-                                </p>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
         </Tabs>
+
+        {/* 口座振込上限警告（1億円超過時） */}
+        {totals.profit > 100000000 && (
+          <Card className="border-orange-500">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-orange-500" />
+                <CardTitle className="text-sm">振込上限警告</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                同一決済日の出口金額合計が1億円を超えています。複数口座での振込が必要です。
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* 案件詳細モーダル */}
         <PropertyDetailModal

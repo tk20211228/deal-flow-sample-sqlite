@@ -38,36 +38,36 @@ const data = {
     avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
-    {
-      title: "ダッシュボード",
-      url: "/dashboard",
-      icon: IconDashboard,
-    },
+    // {
+    //   title: "ダッシュボード",
+    //   url: "/dashboard",
+    //   icon: IconDashboard,
+    // },
     {
       title: "案件管理",
       url: "/properties",
       icon: IconListDetails,
     },
-    {
-      title: "業者管理",
-      url: "/firms",
-      icon: IconBuildingCommunity,
-    },
-    {
-      title: "マイソク管理",
-      url: "/misoqs",
-      icon: IconFiles,
-    },
+    // {
+    //   title: "業者管理",
+    //   url: "/firms",
+    //   icon: IconBuildingCommunity,
+    // },
+    // {
+    //   title: "マイソク管理",
+    //   url: "/misoqs",
+    //   icon: IconFiles,
+    // },
     {
       title: "組織管理",
       url: "/organization",
       icon: IconUsers,
     },
-    {
-      title: "レポート",
-      url: "/reports",
-      icon: IconChartBar,
-    },
+    // {
+    //   title: "レポート",
+    //   url: "/reports",
+    //   icon: IconChartBar,
+    // },
   ],
   // navClouds: [
   //   {
