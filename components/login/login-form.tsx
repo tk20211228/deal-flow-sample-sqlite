@@ -52,8 +52,9 @@ export function LoginForm({
   useEffect(() => {
     const checkPendingInvitation = async () => {
       const cookies = document.cookie.split(";");
-      const pendingInvitation = cookies
-        .find((cookie) => cookie.trim().startsWith("pending_invitation="));
+      const pendingInvitation = cookies.find((cookie) =>
+        cookie.trim().startsWith("pending_invitation=")
+      );
 
       if (pendingInvitation && !invitationId) {
         try {
@@ -107,17 +108,18 @@ export function LoginForm({
           if (acceptResult.success) {
             router.push(`/organization/${acceptResult.organizationId}`);
           } else {
-            router.push("/dashboard");
+            router.push("/properties/unconfirmed");
           }
         } catch (error) {
           console.error("Failed to accept invitation:", error);
-          router.push("/dashboard");
+          router.push("/properties/unconfirmed");
         }
       } else {
         // 保留中の招待を確認
         const cookies = document.cookie.split(";");
-        const pendingInvitationCookie = cookies
-          .find((cookie) => cookie.trim().startsWith("pending_invitation="));
+        const pendingInvitationCookie = cookies.find((cookie) =>
+          cookie.trim().startsWith("pending_invitation=")
+        );
 
         if (pendingInvitationCookie) {
           try {
@@ -149,7 +151,11 @@ export function LoginForm({
         router.push("/dashboard");
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : "ログイン中にエラーが発生しました");
+      setError(
+        error instanceof Error
+          ? error.message
+          : "ログイン中にエラーが発生しました"
+      );
       setLoading(false);
     }
   };
@@ -282,7 +288,11 @@ export function LoginForm({
               <div className="text-center text-sm">
                 アカウントをお持ちでないですか？{" "}
                 <Link
-                  href={isInvitation ? `/signup?invitation=${invitationId}` : "/signup"}
+                  href={
+                    isInvitation
+                      ? `/signup?invitation=${invitationId}`
+                      : "/signup"
+                  }
                   className="underline underline-offset-4"
                 >
                   新規登録
