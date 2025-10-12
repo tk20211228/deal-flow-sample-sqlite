@@ -118,7 +118,9 @@ export function SiteHeader() {
               <BreadcrumbList>
                 {breadcrumbs.map((breadcrumb, index) => {
                   // /properties と /properties/monthly はページが存在しないのでリンク不可
-                  const isNonLinkable = breadcrumb.href === "/properties" || breadcrumb.href === "/properties/monthly";
+                  const isNonLinkable =
+                    breadcrumb.href === "/properties" ||
+                    breadcrumb.href === "/properties/monthly";
 
                   // 年の判定（4桁の数字）
                   const isYear = /^\d{4}$/.test(
@@ -202,7 +204,13 @@ export function SiteHeader() {
                         <BreadcrumbPage>{breadcrumb.label}</BreadcrumbPage>
                       ) : isNonLinkable ? (
                         <>
-                          <span className={breadcrumb.href === "/properties/monthly" ? "text-foreground" : "text-muted-foreground"}>
+                          <span
+                            className={
+                              breadcrumb.href === "/properties/monthly"
+                                ? "text-foreground"
+                                : "text-muted-foreground"
+                            }
+                          >
                             {breadcrumb.label}
                           </span>
                           {index < breadcrumbs.length - 1 && (
@@ -231,9 +239,11 @@ export function SiteHeader() {
 
         {pathname === "/properties/unconfirmed" && (
           <div className="ml-auto flex items-center gap-2">
-            <Button>
-              <Plus />
-              新規案件登録
+            <Button asChild>
+              <Link href="/properties/new">
+                <Plus />
+                新規案件登録
+              </Link>
             </Button>
           </div>
         )}
