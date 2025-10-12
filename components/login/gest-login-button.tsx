@@ -15,7 +15,7 @@ export default function GestLoginButton() {
           .anonymous()
           .then(() => {
             toast.success("ログインしました");
-            router.push("/dashboard");
+            router.push("/properties/unconfirmed");
           })
           .catch((error) => {
             console.error(error);
