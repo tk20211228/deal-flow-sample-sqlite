@@ -139,7 +139,7 @@ export function MonthlyPropertiesClient({
     return `${date.getMonth() + 1}/${date.getDate()}(${days[date.getDay()]})`;
   };
 
-  const truncateText = (text: string, maxLength: number = 4) => {
+  const truncateText = (text: string, maxLength: number = 5) => {
     if (!text) return "-";
     return text.length > maxLength ? text.substring(0, maxLength) : text;
   };

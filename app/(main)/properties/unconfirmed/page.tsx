@@ -82,7 +82,7 @@ export default function UnconfirmedPropertiesPage() {
     return value ? `${(value / 10000).toFixed(0)}万` : "-";
   };
 
-  const truncateText = (text: string, maxLength: number = 4) => {
+  const truncateText = (text: string, maxLength: number = 5) => {
     if (!text) return "-";
     return text.length > maxLength ? text.substring(0, maxLength) : text;
   };
