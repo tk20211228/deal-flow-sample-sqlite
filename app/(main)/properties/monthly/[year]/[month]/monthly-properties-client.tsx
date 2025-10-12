@@ -22,7 +22,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical, Eye, Edit } from "lucide-react";
 import { PropertyDetailModal } from "@/components/property-detail-modal";
 import {
   BUSINESS_STATUS,
@@ -408,14 +414,34 @@ export function MonthlyPropertiesClient({
                 )}
               </TableCell>
               <TableCell className="text-[10px] p-1 sticky right-0 bg-background">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-5 text-[9px] px-1"
-                  onClick={() => handlePropertyClick(property)}
-                >
-                  詳細
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-5 w-5 p-0"
+                    >
+                      <MoreVertical className="h-3 w-3" />
+                      <span className="sr-only">操作メニュー</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        router.push(`/properties/monthly/${year}/${month}/${property.id}`);
+                      }}
+                    >
+                      <Eye className="h-3 w-3" />
+                      詳細
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handlePropertyClick(property)}
+                    >
+                      <Edit className="h-3 w-3" />
+                      編集
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}

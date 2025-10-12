@@ -3,7 +3,8 @@
     "allow": [
       "Bash(cp:*)",
       "Bash(tail:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(pnpm dev)"
     ]
   },
   "enableAllProjectMcpServers": true,

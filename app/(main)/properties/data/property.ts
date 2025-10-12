@@ -308,6 +308,22 @@ export const BROKER_COMPANIES = {
   NONE: "",
 } as const;
 
+// 担当営業
+export const ASSIGNEES = {
+  MINATO: "湊",
+  IWATA: "岩田",
+  KIYOHARA: "清原",
+  HORI: "堀",
+  YABUTA: "薮田",
+  HAYAKAWA: "早川",
+  KONDO: "近藤",
+  KOBAYASHI: "小林",
+  MUTA: "牟田",
+  KUNIMI: "國眼",
+  SAKAMOTO: "坂本",
+  YOKOYAMA: "横山",
+} as const;
+
 // ========================================
 // ヘルパー関数：デフォルトの進捗データを生成
 // ========================================
