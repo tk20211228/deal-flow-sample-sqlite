@@ -1,4 +1,4 @@
-import { Pet } from "@/app/types/pet";
+import { Pet } from "@/lib/types/pet";
 import { Card, CardHeader, CardTitle, CardDescription } from "./ui/card";
 import React from "react";
 

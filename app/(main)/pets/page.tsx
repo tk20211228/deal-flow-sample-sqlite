@@ -1,5 +1,5 @@
 import PetCard from "@/components/pet-card";
-import { Pet } from "../../types/pet";
+import { Pet } from "../../../lib/types/pet";
 
 export default function PetsPage() {
   const mockPets: Pet[] = [

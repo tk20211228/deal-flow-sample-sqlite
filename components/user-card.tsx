@@ -1,4 +1,4 @@
-import { User } from "@/app/types/user";
+import { User } from "@/lib/types/user";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Card, CardHeader, CardTitle, CardDescription } from "./ui/card";
 import { getAvatarUrl } from "@/lib/avatar";

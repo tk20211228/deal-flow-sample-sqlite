@@ -1,4 +1,4 @@
-import { timestamps } from "@/lib/column-helper";
+import { timestamps } from "@/db/column-helper";
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {

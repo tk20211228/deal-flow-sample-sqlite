@@ -8,8 +8,11 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
+    "drizzle:generate": "drizzle-kit generate",
     "drizzle:migrate": "drizzle-kit migrate",
-    "drizzle:studio": "drizzle-kit studio"
+    "drizzle:gm": "pnpm drizzle:generate && pnpm drizzle:migrate",
+    "drizzle:studio": "drizzle-kit studio",
+    "better-auth:generate": "pnpx @better-auth/cli@latest generate --output ./db/schemas/auth.ts --yes"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

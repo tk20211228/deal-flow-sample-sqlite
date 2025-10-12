@@ -26,7 +26,7 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 
-import { User } from "@/app/types/user";
+import { User } from "@/lib/types/user";
 import Logo from "@/public/logo.svg";
 import Image from "next/image";
 import Link from "next/link";

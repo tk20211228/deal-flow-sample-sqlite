@@ -23,7 +23,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signupSchema } from "@/lib/zod/schemas/auth";
 import { authClient } from "@/lib/auth-client";
-import { SignupFormData } from "@/app/types/auth";
+import { SignupFormData } from "@/lib/types/auth";
 
 interface SignupFormProps {
   className?: string;

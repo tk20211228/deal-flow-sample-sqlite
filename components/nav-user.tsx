@@ -8,7 +8,7 @@ import {
   IconUserCircle,
 } from "@tabler/icons-react";
 
-import { User } from "@/app/types/user";
+import { User } from "@/lib/types/user";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
