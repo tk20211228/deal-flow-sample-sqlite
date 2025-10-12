@@ -1,5 +1,264 @@
-import { Property } from "../page";
+// ========================================
+// 共通型定義
+// ========================================
 
+// チェック項目の型（日時・ユーザー情報付き）
+export interface CheckItem {
+  checked: boolean;
+  date?: string; // チェック日時（例: "2025/01/10 14:30"）
+  user?: string; // チェックしたユーザー（苗字のみ）
+}
+
+// 書類進捗のステータス型
+export type DocumentProgressStatus = "空欄" | "依頼" | "取得完了" | "書類なし";
+
+// 書類進捗項目の型
+export interface DocumentItem {
+  status: DocumentProgressStatus;
+  date?: string; // 更新日時
+  user?: string; // 更新者（苗字のみ）
+}
+
+// 段階的進捗の型（作成→送付→CB完了など）
+export interface StageProgress {
+  created?: CheckItem; // 作成
+  sent?: CheckItem; // 送付
+  cbCompleted?: CheckItem; // CB完了
+  crCompleted?: CheckItem; // CR完了（AB精算書用）
+}
+
+// ========================================
+// 契約進捗
+// ========================================
+
+// AB関係の契約進捗
+export interface AbContractProgress {
+  contractSaved: CheckItem; // 契約書 保存完了
+  proxyCompleted: CheckItem; // 委任状関係 保存完了
+  sellerIdSaved: CheckItem; // 売主身分証 保存完了
+}
+
+// BC関係の契約進捗
+export interface BcContractProgress {
+  bcContractCreated: CheckItem; // BC売契作成
+  importantMattersCreated: CheckItem; // 重説作成
+  bcContractSent: CheckItem; // BC売契送付
+  importantMattersSent: CheckItem; // 重説送付
+  bcContractCbCompleted: CheckItem; // BC売契CB完了
+  importantMattersCbCompleted: CheckItem; // 重説CB完了
+}
+
+// ========================================
+// 書類進捗
+// ========================================
+
+// 賃貸管理関係の書類
+export interface RentalDocuments {
+  rentalContract: DocumentItem; // 賃貸借契約書
+  managementContract: DocumentItem; // 管理委託契約書
+}
+
+// 建物管理関係の書類
+export interface BuildingDocuments {
+  importantMatters: DocumentItem; // 重要事項調査報告書
+  managementRules: DocumentItem; // 管理規約
+  longTermPlan: DocumentItem; // 長期修繕計画書
+  generalMeeting: DocumentItem; // 総会議事録
+}
+
+// 役所関係の書類
+export interface GovernmentDocuments {
+  taxCertificate: DocumentItem; // 公課証明
+  buildingPlan: DocumentItem; // 建築計画概要書
+  registryRecord: DocumentItem; // 台帳記載事項証明書
+  useDistrict: DocumentItem; // 用途地域
+  roadLedger: DocumentItem; // 道路台帳
+}
+
+// 銀行関係の書類
+export interface BankDocuments {
+  loanCalculation: DocumentItem; // ローン計算書
+}
+
+// ========================================
+// 決済進捗
+// ========================================
+
+// 精算書関係
+export interface StatementProgress {
+  bcStatement: StageProgress; // BC精算書（作成→送付→CB完了）
+  loanCalculationSaved: CheckItem; // ローン計算書 保存
+  abStatement: StageProgress; // AB精算書（作成→送付→CR完了）
+}
+
+// 司法書士関係
+export interface ScrivenerProgress {
+  requested: CheckItem; // 司法書士依頼
+  documentsShared: CheckItem; // 必要書類共有
+  idDocumentSent: CheckItem; // 本人確認書類 発送
+  idDocumentReceived: CheckItem; // 本人確認書類 受取
+  idDocumentReturned: CheckItem; // 本人確認書類 返送
+  noDefects: CheckItem; // 書類不備なし
+}
+
+// 抵当銀行関係
+export interface MortgageBankProgress {
+  requested: CheckItem; // 抵当銀行 依頼
+  accepted: CheckItem; // 抵当銀行 受付完了
+  noDefects: CheckItem; // 書類不備なし
+  loanCalculationSaved: CheckItem; // ローン計算書 保存
+  sellerPaymentCompleted: CheckItem; // 売主手出し完了
+}
+
+// 賃貸管理・決済後関係
+export interface PostSettlementProgress {
+  managementCancellationRequested: CheckItem; // 管理解約依頼 依頼
+  managementCancellationCompleted: CheckItem; // 管理解約依頼 完了
+  guaranteeSuccessionRequested: CheckItem; // 保証会社承継 依頼
+  guaranteeSuccessionCompleted: CheckItem; // 保証会社承継 完了
+  keyReceived: CheckItem; // 鍵 受取
+  keySent: CheckItem; // 鍵 発送
+  accountTransferReceived: CheckItem; // 管積 口座振替手続き 受取
+  accountTransferSent: CheckItem; // 管積 口座振替手続き 発送
+  transactionLedger: CheckItem; // 取引台帳記入
+}
+
+// ========================================
+// 口座関係の定数
+// ========================================
+
+// 口座会社
+export const ACCOUNT_COMPANIES = {
+  REIJIT: "レイジット",
+  LIFE: "ライフ",
+  MS: "エムズ",
+} as const;
+
+// 各社の銀行口座
+export const BANK_ACCOUNTS = {
+  REIJIT: {
+    GMO_MAIN: "GMOメイン",
+    GMO_SUB: "GMOサブ",
+    SUMISHIN: "住信",
+    KINSANS: "近産",
+  },
+  MS: {
+    GMO_MAIN: "GMOメイン",
+    GMO_SUB: "GMOサブ",
+    SUMISHIN: "住信",
+    PAYPAY_1: "ペイペイ①",
+    PAYPAY_2: "ペイペイ②",
+    PAYPAY_3: "ペイペイ③",
+    RAKUTEN_1: "楽天①",
+    RAKUTEN_2: "楽天②",
+  },
+  LIFE: {
+    GMO_MAIN: "GMOメイン",
+    GMO_SUB: "GMOサブ",
+  },
+} as const;
+
+// 使用する銀行口座の型
+export type BankAccountType =
+  | (typeof BANK_ACCOUNTS.REIJIT)[keyof typeof BANK_ACCOUNTS.REIJIT]
+  | (typeof BANK_ACCOUNTS.MS)[keyof typeof BANK_ACCOUNTS.MS]
+  | (typeof BANK_ACCOUNTS.LIFE)[keyof typeof BANK_ACCOUNTS.LIFE]
+  | "";
+
+// ========================================
+// メインのProperty型定義
+// ========================================
+
+export interface Property {
+  id: number;
+
+  // ========================================
+  // 基本情報
+  // ========================================
+  assignee: string[]; // 担当（複数可）
+  propertyName: string; // 物件名
+  roomNumber: string; // 号室
+  ownerName: string; // オーナー名
+  leadType: string; // 名簿種別
+
+  // ========================================
+  // 金額情報
+  // ========================================
+  aAmount: number; // A金額（AB間売買価格）
+  exitAmount: number; // 出口金額（BC間売買価格）
+  commission: number; // 仲手等（合計）
+  profit: number; // 利益（自動計算: 出口金額 - A金額 + 仲手等）
+  bcDeposit: number; // BC手付
+
+  // ========================================
+  // 契約情報
+  // ========================================
+  contractType: string; // 契約形態
+  aContractDate: string; // A契約日（AB契約日）
+  bcContractDate: string; // BC契約日
+  settlementDate: string | null; // 決済日（BC確定前はnull、"10月予定"なども可能）
+
+  // ========================================
+  // 関係者情報
+  // ========================================
+  buyerCompany: string; // 買取業者
+  bCompany: string; // B会社
+  brokerCompany: string; // 仲介会社
+  mortgageBank: string; // 抵当銀行
+
+  // ========================================
+  // 口座管理
+  // ========================================
+  account: "レイジット" | "ライフ" | "エムズ" | ""; // 使用口座会社
+  bankAccount: BankAccountType; // 使用する銀行口座
+
+  // ========================================
+  // 契約進捗状況
+  // ========================================
+  contractProgress: {
+    ab: AbContractProgress; // AB関係
+    bc: BcContractProgress; // BC関係
+  };
+
+  // ========================================
+  // 書類進捗関係
+  // ========================================
+  documentProgress: {
+    rental: RentalDocuments; // 賃貸管理関係
+    building: BuildingDocuments; // 建物管理関係
+    government: GovernmentDocuments; // 役所関係
+    bank: BankDocuments; // 銀行関係
+  };
+
+  // ========================================
+  // 決済進捗状況
+  // ========================================
+  settlementProgress: {
+    statement: StatementProgress; // 精算書関係
+    scrivener: ScrivenerProgress; // 司法書士関係
+    mortgageBank: MortgageBankProgress; // 抵当銀行関係
+    postSettlement: PostSettlementProgress; // 賃貸管理・決済後関係
+  };
+
+  // ========================================
+  // その他管理項目（後方互換性のため残す）
+  // ========================================
+  ownershipTransfer: boolean; // 所変
+  accountTransfer: boolean; // 口振
+  documentSent: boolean; // 送付
+  workplaceDM: boolean; // 勤務先DM
+  transactionLedger: boolean; // 取引台帳
+  managementCancel: boolean; // 管理解約
+  memo: string; // 備考
+
+  // ========================================
+  // ステータス
+  // ========================================
+  businessStatus: string; // 業者ステータス（7段階）
+  documentStatus: string; // 書類ステータス（3段階）
+}
+
+// 業者ステータス（7段階）
 export const BUSINESS_STATUS = {
   BC_UNCONFIRMED: "BC確定前",
   BC_CONFIRMED_CB_WAITING: "BC確定 CB待ち",
@@ -10,939 +269,875 @@ export const BUSINESS_STATUS = {
   SETTLEMENT_COMPLETED: "決済完了",
 } as const;
 
+// 書類ステータス（3段階）
 export const DOCUMENT_STATUS = {
   REQUEST_WAITING: "書類依頼待ち",
   ACQUIRING: "書類取得中",
   ALL_ACQUIRED: "全書類取得完了",
 } as const;
 
+// 契約形態
+export const CONTRACT_TYPES = {
+  AB_BC: "AB・BC",
+  AC: "AC",
+  BREACH: "違約",
+  BREACH_SCHEDULED: "違約予定",
+  BROKER_BUY: "買仲",
+  LAWYER: "弁護士",
+} as const;
+
+// B会社
+export const B_COMPANIES = {
+  MS_COMPANY: "M'scompany",
+  LIFE_INVEST: "ライフインベスト",
+  REIJIT: "レイジット",
+  TRANSACTION_BROKER: "取引業者",
+  NONE: "",
+} as const;
+
+// 仲介会社
+export const BROKER_COMPANIES = {
+  REIJIT: "レイジット",
+  TOUSEI: "TOUSEI",
+  ARK: "アーク",
+  RD: "RD",
+  NBF: "NBF",
+  SHINE_TERRACE: "SHINE TERRACE",
+  ESUKU: "エスク",
+  MS_COMPANY: "M'scompany",
+  NONE: "",
+} as const;
+
+// ========================================
+// ヘルパー関数：デフォルトの進捗データを生成
+// ========================================
+
+// デフォルトのチェック項目（未チェック）
+const createEmptyCheckItem = (): CheckItem => ({
+  checked: false,
+});
+
+// デフォルトの書類項目（空欄）
+const createEmptyDocumentItem = (): DocumentItem => ({
+  status: "空欄",
+});
+
+// デフォルトの段階的進捗
+const createEmptyStageProgress = (): StageProgress => ({});
+
+// デフォルトのAB契約進捗
+const createDefaultAbProgress = (): AbContractProgress => ({
+  contractSaved: createEmptyCheckItem(),
+  proxyCompleted: createEmptyCheckItem(),
+  sellerIdSaved: createEmptyCheckItem(),
+});
+
+// デフォルトのBC契約進捗
+const createDefaultBcProgress = (): BcContractProgress => ({
+  bcContractCreated: createEmptyCheckItem(),
+  importantMattersCreated: createEmptyCheckItem(),
+  bcContractSent: createEmptyCheckItem(),
+  importantMattersSent: createEmptyCheckItem(),
+  bcContractCbCompleted: createEmptyCheckItem(),
+  importantMattersCbCompleted: createEmptyCheckItem(),
+});
+
+// デフォルトの賃貸書類
+const createDefaultRentalDocuments = (): RentalDocuments => ({
+  rentalContract: createEmptyDocumentItem(),
+  managementContract: createEmptyDocumentItem(),
+});
+
+// デフォルトの建物書類
+const createDefaultBuildingDocuments = (): BuildingDocuments => ({
+  importantMatters: createEmptyDocumentItem(),
+  managementRules: createEmptyDocumentItem(),
+  longTermPlan: createEmptyDocumentItem(),
+  generalMeeting: createEmptyDocumentItem(),
+});
+
+// デフォルトの役所書類
+const createDefaultGovernmentDocuments = (): GovernmentDocuments => ({
+  taxCertificate: createEmptyDocumentItem(),
+  buildingPlan: createEmptyDocumentItem(),
+  registryRecord: createEmptyDocumentItem(),
+  useDistrict: createEmptyDocumentItem(),
+  roadLedger: createEmptyDocumentItem(),
+});
+
+// デフォルトの銀行書類
+const createDefaultBankDocuments = (): BankDocuments => ({
+  loanCalculation: createEmptyDocumentItem(),
+});
+
+// デフォルトの精算書進捗
+const createDefaultStatementProgress = (): StatementProgress => ({
+  bcStatement: createEmptyStageProgress(),
+  loanCalculationSaved: createEmptyCheckItem(),
+  abStatement: createEmptyStageProgress(),
+});
+
+// デフォルトの司法書士進捗
+const createDefaultScrivenerProgress = (): ScrivenerProgress => ({
+  requested: createEmptyCheckItem(),
+  documentsShared: createEmptyCheckItem(),
+  idDocumentSent: createEmptyCheckItem(),
+  idDocumentReceived: createEmptyCheckItem(),
+  idDocumentReturned: createEmptyCheckItem(),
+  noDefects: createEmptyCheckItem(),
+});
+
+// デフォルトの抵当銀行進捗
+const createDefaultMortgageBankProgress = (): MortgageBankProgress => ({
+  requested: createEmptyCheckItem(),
+  accepted: createEmptyCheckItem(),
+  noDefects: createEmptyCheckItem(),
+  loanCalculationSaved: createEmptyCheckItem(),
+  sellerPaymentCompleted: createEmptyCheckItem(),
+});
+
+// デフォルトの決済後進捗
+const createDefaultPostSettlementProgress = (): PostSettlementProgress => ({
+  managementCancellationRequested: createEmptyCheckItem(),
+  managementCancellationCompleted: createEmptyCheckItem(),
+  guaranteeSuccessionRequested: createEmptyCheckItem(),
+  guaranteeSuccessionCompleted: createEmptyCheckItem(),
+  keyReceived: createEmptyCheckItem(),
+  keySent: createEmptyCheckItem(),
+  accountTransferReceived: createEmptyCheckItem(),
+  accountTransferSent: createEmptyCheckItem(),
+  transactionLedger: createEmptyCheckItem(),
+});
+
+// ========================================
+// サンプルデータ（15件）
+// 構成: BC未確定 5件、9月決済 5件、10月決済 5件
+// ========================================
+
 export const properties: Property[] = [
+  // ===== BC未確定案件（5件）=====
   {
     id: 1,
-    assignee: "営業田中",
-    propertyName: "渋谷区物件",
-    roomNumber: "101",
-    ownerName: "山田太郎",
+    assignee: ["湊", "岩田"],
+    propertyName: "エスリード神戸ハーバークロス",
+    roomNumber: "605",
+    ownerName: "米川哲治",
     leadType: "反響",
-    aAmount: 8500000,
-    exitAmount: 9350000,
-    commission: 396000,
-    profit: 1246000, // 9350000 - 8500000 + 396000
-    bcDeposit: 500000,
-    contractType: "専任媒介",
-    aContractDate: "2025-01-15",
-    bcContractDate: "2025-01-20",
-    settlementDate: "2025-10-15",
-    buyerCompany: "株式会社A不動産",
-    bCompany: "レイジット",
-    brokerCompany: "仲介会社A",
-    mortgageBank: "三井住友銀行",
-    raygetAccount: "GMOメイン",
-    lifeAccount: "",
-    msAccount: "",
-    ownershipTransfer: true,
+    aAmount: 12000000,
+    exitAmount: 14800000,
+    commission: 300000,
+    profit: 3100000,
+    bcDeposit: 0,
+    contractType: CONTRACT_TYPES.LAWYER,
+    aContractDate: "2025-08-10",
+    bcContractDate: "",
+    settlementDate: null,
+    buyerCompany: "",
+    bCompany: B_COMPANIES.MS_COMPANY,
+    brokerCompany: BROKER_COMPANIES.TOUSEI,
+    mortgageBank: "",
+    account: "",
+    bankAccount: "",
+    ownershipTransfer: false,
     accountTransfer: false,
-    documentSent: true,
+    documentSent: false,
     workplaceDM: false,
-    transactionLedger: true,
+    transactionLedger: false,
     managementCancel: false,
-    memo: "要注意：決済日調整中",
-    businessStatus: BUSINESS_STATUS.BC_CONFIRMED_CB_WAITING,
-    documentStatus: DOCUMENT_STATUS.ACQUIRING,
+    memo: "弁護士から連絡あり",
+    businessStatus: BUSINESS_STATUS.BC_UNCONFIRMED,
+    documentStatus: DOCUMENT_STATUS.REQUEST_WAITING,
+    contractProgress: {
+      ab: createDefaultAbProgress(),
+      bc: createDefaultBcProgress(),
+    },
+    documentProgress: {
+      rental: createDefaultRentalDocuments(),
+      building: createDefaultBuildingDocuments(),
+      government: createDefaultGovernmentDocuments(),
+      bank: createDefaultBankDocuments(),
+    },
+    settlementProgress: {
+      statement: createDefaultStatementProgress(),
+      scrivener: createDefaultScrivenerProgress(),
+      mortgageBank: createDefaultMortgageBankProgress(),
+      postSettlement: createDefaultPostSettlementProgress(),
+    },
   },
   {
     id: 2,
-    propertyName: "新宿区物件",
-    roomNumber: "202",
-    ownerName: "鈴木花子",
-    assignee: "営業山田",
+    assignee: ["岩田"],
+    propertyName: "LANDIC O2227",
+    roomNumber: "901",
+    ownerName: "宮川洋平",
     leadType: "テレアポ",
-    aAmount: 12000000,
-    exitAmount: 13200000,
-    commission: 495000,
-    profit: 1695000, // 13200000 - 12000000 + 495000
-    bcDeposit: 660000,
-    contractType: "一般媒介",
-    aContractDate: "2025-01-10",
-    bcContractDate: "2025-01-15",
-    settlementDate: "2025-10-20",
-    buyerCompany: "株式会社B不動産",
-    bCompany: "エムズ",
-    brokerCompany: "仲介会社B",
-    mortgageBank: "みずほ銀行",
-    raygetAccount: "",
-    lifeAccount: "",
-    msAccount: "GMOメイン",
-    ownershipTransfer: true,
-    accountTransfer: true,
-    documentSent: true,
-    workplaceDM: true,
-    transactionLedger: true,
-    managementCancel: true,
-    memo: "",
-    businessStatus: BUSINESS_STATUS.SETTLEMENT_COMPLETED,
-    documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
+    aAmount: 12500000,
+    exitAmount: 16000000,
+    commission: 400000,
+    profit: 3900000,
+    bcDeposit: 0,
+    contractType: CONTRACT_TYPES.LAWYER,
+    aContractDate: "2025-08-15",
+    bcContractDate: "",
+    settlementDate: null,
+    buyerCompany: "",
+    bCompany: B_COMPANIES.MS_COMPANY,
+    brokerCompany: BROKER_COMPANIES.TOUSEI,
+    mortgageBank: "",
+    account: "",
+    bankAccount: "",
+    ownershipTransfer: false,
+    accountTransfer: false,
+    documentSent: false,
+    workplaceDM: false,
+    transactionLedger: false,
+    managementCancel: false,
+    memo: "重調51,700円",
+    businessStatus: BUSINESS_STATUS.BC_UNCONFIRMED,
+    documentStatus: DOCUMENT_STATUS.ACQUIRING,
+    contractProgress: {
+      ab: createDefaultAbProgress(),
+      bc: createDefaultBcProgress(),
+    },
+    documentProgress: {
+      rental: createDefaultRentalDocuments(),
+      building: createDefaultBuildingDocuments(),
+      government: createDefaultGovernmentDocuments(),
+      bank: createDefaultBankDocuments(),
+    },
+    settlementProgress: {
+      statement: createDefaultStatementProgress(),
+      scrivener: createDefaultScrivenerProgress(),
+      mortgageBank: createDefaultMortgageBankProgress(),
+      postSettlement: createDefaultPostSettlementProgress(),
+    },
   },
   {
     id: 3,
-    propertyName: "港区物件",
-    roomNumber: "303",
-    ownerName: "佐藤次郎",
-    assignee: "営業鈴木",
-    leadType: "紹介",
-    aAmount: 15000000,
-    exitAmount: 0,
-    commission: 0,
-    profit: 0,
+    assignee: ["清原", "堀"],
+    propertyName: "アドバンス心斎橋ラシュレ",
+    roomNumber: "305",
+    ownerName: "倉田怜輝",
+    leadType: "DM",
+    aAmount: 12800000,
+    exitAmount: 15300000,
+    commission: 240000,
+    profit: 2740000,
     bcDeposit: 0,
-    contractType: "専任媒介",
-    aContractDate: "2025-01-20",
+    contractType: CONTRACT_TYPES.BREACH_SCHEDULED,
+    aContractDate: "2025-08-20",
     bcContractDate: "",
-    settlementDate: "",
+    settlementDate: null,
     buyerCompany: "",
-    bCompany: "レイジット",
-    brokerCompany: "",
-    mortgageBank: "三菱UFJ銀行",
-    raygetAccount: "",
-    lifeAccount: "",
-    msAccount: "",
+    bCompany: B_COMPANIES.MS_COMPANY,
+    brokerCompany: BROKER_COMPANIES.REIJIT,
+    mortgageBank: "",
+    account: "",
+    bankAccount: "",
     ownershipTransfer: false,
     accountTransfer: false,
     documentSent: false,
     workplaceDM: false,
     transactionLedger: false,
     managementCancel: false,
-    memo: "書類取得中",
+    memo: "違約予定",
     businessStatus: BUSINESS_STATUS.BC_UNCONFIRMED,
     documentStatus: DOCUMENT_STATUS.REQUEST_WAITING,
+    contractProgress: {
+      ab: createDefaultAbProgress(),
+      bc: createDefaultBcProgress(),
+    },
+    documentProgress: {
+      rental: createDefaultRentalDocuments(),
+      building: createDefaultBuildingDocuments(),
+      government: createDefaultGovernmentDocuments(),
+      bank: createDefaultBankDocuments(),
+    },
+    settlementProgress: {
+      statement: createDefaultStatementProgress(),
+      scrivener: createDefaultScrivenerProgress(),
+      mortgageBank: createDefaultMortgageBankProgress(),
+      postSettlement: createDefaultPostSettlementProgress(),
+    },
   },
   {
     id: 4,
-    propertyName: "品川区物件",
+    assignee: ["薮田", "早川"],
+    propertyName: "MAXIV八王子DUE",
     roomNumber: "404",
-    ownerName: "田中美咲",
-    assignee: "営業佐藤",
-    leadType: "DM",
-    aAmount: 9800000,
-    exitAmount: 10780000,
-    commission: 432000,
-    profit: 1412000, // 10780000 - 9800000 + 432000
-    bcDeposit: 540000,
-    contractType: "専任媒介",
-    aContractDate: "2025-01-18",
-    bcContractDate: "2025-01-25",
-    settlementDate: "2025-10-25",
-    buyerCompany: "株式会社C不動産",
-    bCompany: "ライフ",
-    brokerCompany: "仲介会社C",
-    mortgageBank: "りそな銀行",
-    raygetAccount: "",
-    lifeAccount: "GMOメイン",
-    msAccount: "",
-    ownershipTransfer: true,
+    ownerName: "永田滉基",
+    leadType: "紹介",
+    aAmount: 11500000,
+    exitAmount: 11500000,
+    commission: 445500,
+    profit: 445500,
+    bcDeposit: 0,
+    contractType: CONTRACT_TYPES.AB_BC,
+    aContractDate: "2025-08-25",
+    bcContractDate: "",
+    settlementDate: null,
+    buyerCompany: "",
+    bCompany: B_COMPANIES.MS_COMPANY,
+    brokerCompany: BROKER_COMPANIES.TOUSEI,
+    mortgageBank: "",
+    account: "",
+    bankAccount: "",
+    ownershipTransfer: false,
     accountTransfer: false,
     documentSent: false,
     workplaceDM: false,
     transactionLedger: false,
     managementCancel: false,
-    memo: "BC契約書確認中",
-    businessStatus: BUSINESS_STATUS.BC_CONFIRMED_CONTRACT_WAITING,
+    memo: "",
+    businessStatus: BUSINESS_STATUS.BC_UNCONFIRMED,
     documentStatus: DOCUMENT_STATUS.ACQUIRING,
+    contractProgress: {
+      ab: createDefaultAbProgress(),
+      bc: createDefaultBcProgress(),
+    },
+    documentProgress: {
+      rental: createDefaultRentalDocuments(),
+      building: createDefaultBuildingDocuments(),
+      government: createDefaultGovernmentDocuments(),
+      bank: createDefaultBankDocuments(),
+    },
+    settlementProgress: {
+      statement: createDefaultStatementProgress(),
+      scrivener: createDefaultScrivenerProgress(),
+      mortgageBank: createDefaultMortgageBankProgress(),
+      postSettlement: createDefaultPostSettlementProgress(),
+    },
   },
   {
     id: 5,
-    propertyName: "世田谷区物件",
-    roomNumber: "505",
-    ownerName: "高橋和夫",
-    assignee: "営業伊藤",
+    assignee: ["近藤", "小林"],
+    propertyName: "エステムコート横濱大通り公園",
+    roomNumber: "605",
+    ownerName: "水野泰宏",
     leadType: "反響",
-    aAmount: 11500000,
-    exitAmount: 12650000,
-    commission: 462000,
-    profit: 1612000,
-    bcDeposit: 630000,
-    contractType: "専任媒介",
-    aContractDate: "2025-01-12",
-    bcContractDate: "2025-01-22",
-    settlementDate: "2025-10-18",
-    buyerCompany: "株式会社D不動産",
-    bCompany: "レイジット",
-    brokerCompany: "仲介会社D",
-    mortgageBank: "三井住友銀行",
-    raygetAccount: "GMOサブ",
-    lifeAccount: "",
-    msAccount: "",
+    aAmount: 19000000,
+    exitAmount: 21930000,
+    commission: 693000,
+    profit: 3623000,
+    bcDeposit: 0,
+    contractType: CONTRACT_TYPES.AB_BC,
+    aContractDate: "2025-09-01",
+    bcContractDate: "",
+    settlementDate: null,
+    buyerCompany: "",
+    bCompany: B_COMPANIES.MS_COMPANY,
+    brokerCompany: BROKER_COMPANIES.NBF,
+    mortgageBank: "",
+    account: "",
+    bankAccount: "",
+    ownershipTransfer: false,
+    accountTransfer: false,
+    documentSent: false,
+    workplaceDM: false,
+    transactionLedger: false,
+    managementCancel: false,
+    memo: "業者選定中",
+    businessStatus: BUSINESS_STATUS.BC_UNCONFIRMED,
+    documentStatus: DOCUMENT_STATUS.ACQUIRING,
+    contractProgress: {
+      ab: createDefaultAbProgress(),
+      bc: createDefaultBcProgress(),
+    },
+    documentProgress: {
+      rental: createDefaultRentalDocuments(),
+      building: createDefaultBuildingDocuments(),
+      government: createDefaultGovernmentDocuments(),
+      bank: createDefaultBankDocuments(),
+    },
+    settlementProgress: {
+      statement: createDefaultStatementProgress(),
+      scrivener: createDefaultScrivenerProgress(),
+      mortgageBank: createDefaultMortgageBankProgress(),
+      postSettlement: createDefaultPostSettlementProgress(),
+    },
+  },
+
+  // ===== 9月決済案件（5件）=====
+  {
+    id: 6,
+    assignee: ["牟田"],
+    propertyName: "MAXIV武蔵小杉",
+    roomNumber: "204",
+    ownerName: "白幡拓也",
+    leadType: "反響",
+    aAmount: 16520000,
+    exitAmount: 20050000,
+    commission: 400000,
+    profit: 3930000,
+    bcDeposit: 0,
+    contractType: CONTRACT_TYPES.AB_BC,
+    aContractDate: "2025-06-01",
+    bcContractDate: "2025-06-15",
+    settlementDate: "2025-09-08",
+    buyerCompany: "REIC→株式会社アップルハウス",
+    bCompany: B_COMPANIES.MS_COMPANY,
+    brokerCompany: BROKER_COMPANIES.REIJIT,
+    mortgageBank: "ジャックス",
+    account: "レイジット",
+    bankAccount: BANK_ACCOUNTS.REIJIT.SUMISHIN,
     ownershipTransfer: true,
     accountTransfer: true,
     documentSent: true,
     workplaceDM: false,
     transactionLedger: true,
     managementCancel: false,
-    memo: "決済準備中",
-    businessStatus: BUSINESS_STATUS.STATEMENT_COMPLETED_SETTLEMENT_WAITING,
+    memo: "※B案件 決済完了",
+    businessStatus: BUSINESS_STATUS.SETTLEMENT_COMPLETED,
     documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
-  },
-  {
-    id: 6,
-    propertyName: "目黒区物件",
-    roomNumber: "606",
-    ownerName: "渡辺美紀",
-    assignee: "営業小林",
-    leadType: "テレアポ",
-    aAmount: 13800000,
-    exitAmount: 15180000,
-    commission: 528000,
-    profit: 1908000,
-    bcDeposit: 750000,
-    contractType: "一般媒介",
-    aContractDate: "2025-01-08",
-    bcContractDate: "2025-01-16",
-    settlementDate: "2025-10-22",
-    buyerCompany: "株式会社E不動産",
-    bCompany: "エムズ",
-    brokerCompany: "仲介会社E",
-    mortgageBank: "みずほ銀行",
-    raygetAccount: "",
-    lifeAccount: "",
-    msAccount: "GMOメイン",
-    ownershipTransfer: true,
-    accountTransfer: false,
-    documentSent: true,
-    workplaceDM: true,
-    transactionLedger: false,
-    managementCancel: false,
-    memo: "精算書作成中",
-    businessStatus: BUSINESS_STATUS.SETTLEMENT_CONFIRMED_STATEMENT_WAITING,
-    documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
+    contractProgress: {
+      ab: createDefaultAbProgress(),
+      bc: createDefaultBcProgress(),
+    },
+    documentProgress: {
+      rental: createDefaultRentalDocuments(),
+      building: createDefaultBuildingDocuments(),
+      government: createDefaultGovernmentDocuments(),
+      bank: createDefaultBankDocuments(),
+    },
+    settlementProgress: {
+      statement: createDefaultStatementProgress(),
+      scrivener: createDefaultScrivenerProgress(),
+      mortgageBank: createDefaultMortgageBankProgress(),
+      postSettlement: createDefaultPostSettlementProgress(),
+    },
   },
   {
     id: 7,
-    propertyName: "杉並区物件",
-    roomNumber: "707",
-    ownerName: "木村健太",
-    assignee: "営業松本",
-    leadType: "DM",
-    aAmount: 7200000,
-    exitAmount: 0,
-    commission: 0,
-    profit: 0,
+    assignee: ["牟田"],
+    propertyName: "HY's横浜SOUTHWEST",
+    roomNumber: "701",
+    ownerName: "佐々木彬（旧姓 畠山）",
+    leadType: "テレアポ",
+    aAmount: 15950000,
+    exitAmount: 22700000,
+    commission: 400000,
+    profit: 7150000,
     bcDeposit: 0,
-    contractType: "専任媒介",
-    aContractDate: "2025-01-25",
-    bcContractDate: "",
-    settlementDate: "",
-    buyerCompany: "",
-    bCompany: "ライフ",
-    brokerCompany: "",
-    mortgageBank: "三菱UFJ銀行",
-    raygetAccount: "",
-    lifeAccount: "",
-    msAccount: "",
-    ownershipTransfer: false,
-    accountTransfer: false,
-    documentSent: false,
+    contractType: CONTRACT_TYPES.AB_BC,
+    aContractDate: "2025-06-06",
+    bcContractDate: "2025-07-03",
+    settlementDate: "2025-09-16",
+    buyerCompany: "ネクストステージ",
+    bCompany: B_COMPANIES.MS_COMPANY,
+    brokerCompany: BROKER_COMPANIES.REIJIT,
+    mortgageBank: "SBJ銀行",
+    account: "レイジット",
+    bankAccount: BANK_ACCOUNTS.REIJIT.GMO_MAIN,
+    ownershipTransfer: true,
+    accountTransfer: true,
+    documentSent: true,
     workplaceDM: false,
-    transactionLedger: false,
+    transactionLedger: true,
     managementCancel: false,
-    memo: "CB調整中",
-    businessStatus: BUSINESS_STATUS.BC_UNCONFIRMED,
-    documentStatus: DOCUMENT_STATUS.REQUEST_WAITING,
+    memo: "決済完了",
+    businessStatus: BUSINESS_STATUS.SETTLEMENT_COMPLETED,
+    documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
+    contractProgress: {
+      ab: createDefaultAbProgress(),
+      bc: createDefaultBcProgress(),
+    },
+    documentProgress: {
+      rental: createDefaultRentalDocuments(),
+      building: createDefaultBuildingDocuments(),
+      government: createDefaultGovernmentDocuments(),
+      bank: createDefaultBankDocuments(),
+    },
+    settlementProgress: {
+      statement: createDefaultStatementProgress(),
+      scrivener: createDefaultScrivenerProgress(),
+      mortgageBank: createDefaultMortgageBankProgress(),
+      postSettlement: createDefaultPostSettlementProgress(),
+    },
   },
   {
     id: 8,
-    propertyName: "練馬区物件",
-    roomNumber: "808",
-    ownerName: "斉藤由美",
-    assignee: "営業吉田",
-    leadType: "紹介",
-    aAmount: 9200000,
-    exitAmount: 10120000,
-    commission: 418000,
-    profit: 1338000,
-    bcDeposit: 500000,
-    contractType: "専任媒介",
-    aContractDate: "2025-01-14",
-    bcContractDate: "2025-01-24",
-    settlementDate: "2025-10-28",
-    buyerCompany: "株式会社F不動産",
-    bCompany: "レイジット",
-    brokerCompany: "仲介会社F",
-    mortgageBank: "りそな銀行",
-    raygetAccount: "GMOメイン",
-    lifeAccount: "",
-    msAccount: "",
+    assignee: ["清原"],
+    propertyName: "アドバンス名古屋モクシー",
+    roomNumber: "1409",
+    ownerName: "櫻井祐希",
+    leadType: "DM",
+    aAmount: 12200000,
+    exitAmount: 16500000,
+    commission: 0,
+    profit: 4300000,
+    bcDeposit: 0,
+    contractType: CONTRACT_TYPES.AB_BC,
+    aContractDate: "2025-02-14",
+    bcContractDate: "2025-05-23",
+    settlementDate: "2025-09-19",
+    buyerCompany: "GEED",
+    bCompany: B_COMPANIES.LIFE_INVEST,
+    brokerCompany: BROKER_COMPANIES.REIJIT,
+    mortgageBank: "ソニー銀行",
+    account: "ライフ",
+    bankAccount: BANK_ACCOUNTS.LIFE.GMO_MAIN,
     ownershipTransfer: true,
     accountTransfer: true,
-    documentSent: false,
+    documentSent: true,
     workplaceDM: false,
-    transactionLedger: false,
+    transactionLedger: true,
     managementCancel: false,
-    memo: "決済日調整完了",
-    businessStatus: BUSINESS_STATUS.BC_COMPLETED_SETTLEMENT_WAITING,
-    documentStatus: DOCUMENT_STATUS.ACQUIRING,
+    memo: "決済完了",
+    businessStatus: BUSINESS_STATUS.SETTLEMENT_COMPLETED,
+    documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
+    contractProgress: {
+      ab: createDefaultAbProgress(),
+      bc: createDefaultBcProgress(),
+    },
+    documentProgress: {
+      rental: createDefaultRentalDocuments(),
+      building: createDefaultBuildingDocuments(),
+      government: createDefaultGovernmentDocuments(),
+      bank: createDefaultBankDocuments(),
+    },
+    settlementProgress: {
+      statement: createDefaultStatementProgress(),
+      scrivener: createDefaultScrivenerProgress(),
+      mortgageBank: createDefaultMortgageBankProgress(),
+      postSettlement: createDefaultPostSettlementProgress(),
+    },
   },
   {
     id: 9,
-    propertyName: "中野区物件",
-    roomNumber: "909",
-    ownerName: "加藤正人",
-    assignee: "営業中村",
-    leadType: "反響",
-    aAmount: 10500000,
-    exitAmount: 11550000,
-    commission: 462000,
-    profit: 1512000,
-    bcDeposit: 580000,
-    contractType: "専任媒介",
-    aContractDate: "2025-01-06",
-    bcContractDate: "2025-01-11",
-    settlementDate: "2025-10-12",
-    buyerCompany: "株式会社G不動産",
-    bCompany: "エムズ",
-    brokerCompany: "仲介会社G",
-    mortgageBank: "三井住友銀行",
-    raygetAccount: "",
-    lifeAccount: "",
-    msAccount: "GMOサブ",
+    assignee: ["牟田"],
+    propertyName: "HY's綾瀬駅前",
+    roomNumber: "404",
+    ownerName: "山田雅也",
+    leadType: "紹介",
+    aAmount: 20000000,
+    exitAmount: 23300000,
+    commission: 600000,
+    profit: 3900000,
+    bcDeposit: 500000,
+    contractType: CONTRACT_TYPES.AB_BC,
+    aContractDate: "2025-07-04",
+    bcContractDate: "2025-07-23",
+    settlementDate: "2025-09-26",
+    buyerCompany: "GA",
+    bCompany: B_COMPANIES.MS_COMPANY,
+    brokerCompany: BROKER_COMPANIES.REIJIT,
+    mortgageBank: "楽天銀行",
+    account: "エムズ",
+    bankAccount: BANK_ACCOUNTS.MS.GMO_MAIN,
     ownershipTransfer: true,
     accountTransfer: true,
     documentSent: true,
-    workplaceDM: true,
+    workplaceDM: false,
     transactionLedger: true,
-    managementCancel: true,
-    memo: "",
+    managementCancel: false,
+    memo: "決済完了",
     businessStatus: BUSINESS_STATUS.SETTLEMENT_COMPLETED,
     documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
+    contractProgress: {
+      ab: createDefaultAbProgress(),
+      bc: createDefaultBcProgress(),
+    },
+    documentProgress: {
+      rental: createDefaultRentalDocuments(),
+      building: createDefaultBuildingDocuments(),
+      government: createDefaultGovernmentDocuments(),
+      bank: createDefaultBankDocuments(),
+    },
+    settlementProgress: {
+      statement: createDefaultStatementProgress(),
+      scrivener: createDefaultScrivenerProgress(),
+      mortgageBank: createDefaultMortgageBankProgress(),
+      postSettlement: createDefaultPostSettlementProgress(),
+    },
   },
   {
     id: 10,
-    propertyName: "豊島区物件",
-    roomNumber: "1010",
-    ownerName: "清水直樹",
-    assignee: "営業石田",
-    leadType: "テレアポ",
-    aAmount: 8800000,
-    exitAmount: 9680000,
-    commission: 396000,
-    profit: 1276000,
-    bcDeposit: 480000,
-    contractType: "一般媒介",
-    aContractDate: "2025-01-19",
-    bcContractDate: "2025-01-26",
-    settlementDate: "2025-10-30",
-    buyerCompany: "株式会社H不動産",
-    bCompany: "ライフ",
-    brokerCompany: "仲介会社H",
-    mortgageBank: "みずほ銀行",
-    raygetAccount: "",
-    lifeAccount: "GMOメイン",
-    msAccount: "",
-    ownershipTransfer: false,
-    accountTransfer: false,
-    documentSent: false,
+    assignee: ["牟田"],
+    propertyName: "HY's西横浜",
+    roomNumber: "205",
+    ownerName: "永瀬繁幸",
+    leadType: "反響",
+    aAmount: 9570000,
+    exitAmount: 19100000,
+    commission: 340000,
+    profit: 9870000,
+    bcDeposit: 0,
+    contractType: CONTRACT_TYPES.AB_BC,
+    aContractDate: "2025-07-25",
+    bcContractDate: "2025-08-30",
+    settlementDate: "2025-09-30",
+    buyerCompany: "セカンドライブ→ブロードブレインズ",
+    bCompany: B_COMPANIES.MS_COMPANY,
+    brokerCompany: BROKER_COMPANIES.REIJIT,
+    mortgageBank: "イオン銀行",
+    account: "エムズ",
+    bankAccount: BANK_ACCOUNTS.MS.GMO_MAIN,
+    ownershipTransfer: true,
+    accountTransfer: true,
+    documentSent: true,
     workplaceDM: false,
-    transactionLedger: false,
+    transactionLedger: true,
     managementCancel: false,
-    memo: "BC契約締結待ち",
-    businessStatus: BUSINESS_STATUS.BC_CONFIRMED_CONTRACT_WAITING,
-    documentStatus: DOCUMENT_STATUS.ACQUIRING,
+    memo: "※B案件 決済完了",
+    businessStatus: BUSINESS_STATUS.SETTLEMENT_COMPLETED,
+    documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
+    contractProgress: {
+      ab: createDefaultAbProgress(),
+      bc: createDefaultBcProgress(),
+    },
+    documentProgress: {
+      rental: createDefaultRentalDocuments(),
+      building: createDefaultBuildingDocuments(),
+      government: createDefaultGovernmentDocuments(),
+      bank: createDefaultBankDocuments(),
+    },
+    settlementProgress: {
+      statement: createDefaultStatementProgress(),
+      scrivener: createDefaultScrivenerProgress(),
+      mortgageBank: createDefaultMortgageBankProgress(),
+      postSettlement: createDefaultPostSettlementProgress(),
+    },
   },
+
+  // ===== 10月決済案件（5件）決済完了含む =====
   {
     id: 11,
-    propertyName: "板橋区物件",
-    roomNumber: "1111",
-    ownerName: "森田あゆみ",
-    assignee: "営業岡田",
-    leadType: "DM",
-    aAmount: 6500000,
-    exitAmount: 0,
+    assignee: ["清原", "坂本"],
+    propertyName: "スワンズシティ南堀江ブルーム",
+    roomNumber: "1204",
+    ownerName: "留田敏和",
+    leadType: "反響",
+    aAmount: 16800000,
+    exitAmount: 19000000,
     commission: 0,
-    profit: 0,
+    profit: 2200000,
     bcDeposit: 0,
-    contractType: "専任媒介",
-    aContractDate: "2025-01-28",
-    bcContractDate: "",
-    settlementDate: "",
-    buyerCompany: "",
-    bCompany: "レイジット",
-    brokerCompany: "",
-    mortgageBank: "三菱UFJ銀行",
-    raygetAccount: "",
-    lifeAccount: "",
-    msAccount: "",
-    ownershipTransfer: false,
+    contractType: CONTRACT_TYPES.AB_BC,
+    aContractDate: "2025-06-04",
+    bcContractDate: "2025-06-04",
+    settlementDate: "2025-10-02",
+    buyerCompany: "ネクサス",
+    bCompany: B_COMPANIES.LIFE_INVEST,
+    brokerCompany: BROKER_COMPANIES.TOUSEI,
+    mortgageBank: "オリックス銀行",
+    account: "ライフ",
+    bankAccount: BANK_ACCOUNTS.LIFE.GMO_MAIN,
+    ownershipTransfer: true,
     accountTransfer: false,
-    documentSent: false,
+    documentSent: true,
     workplaceDM: false,
-    transactionLedger: false,
+    transactionLedger: true,
     managementCancel: false,
-    memo: "書類収集中",
-    businessStatus: BUSINESS_STATUS.BC_UNCONFIRMED,
-    documentStatus: DOCUMENT_STATUS.ACQUIRING,
+    memo: "決済完了",
+    businessStatus: BUSINESS_STATUS.SETTLEMENT_COMPLETED,
+    documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
+    contractProgress: {
+      ab: createDefaultAbProgress(),
+      bc: createDefaultBcProgress(),
+    },
+    documentProgress: {
+      rental: createDefaultRentalDocuments(),
+      building: createDefaultBuildingDocuments(),
+      government: createDefaultGovernmentDocuments(),
+      bank: createDefaultBankDocuments(),
+    },
+    settlementProgress: {
+      statement: createDefaultStatementProgress(),
+      scrivener: createDefaultScrivenerProgress(),
+      mortgageBank: createDefaultMortgageBankProgress(),
+      postSettlement: createDefaultPostSettlementProgress(),
+    },
   },
   {
     id: 12,
-    propertyName: "江東区物件",
-    roomNumber: "1212",
-    ownerName: "橋本隆",
-    assignee: "営業藤田",
-    leadType: "紹介",
-    aAmount: 14500000,
-    exitAmount: 15950000,
-    commission: 594000,
-    profit: 2044000,
-    bcDeposit: 800000,
-    contractType: "専任媒介",
-    aContractDate: "2025-01-05",
-    bcContractDate: "2025-01-13",
-    settlementDate: "2025-10-14",
-    buyerCompany: "株式会社I不動産",
-    bCompany: "エムズ",
-    brokerCompany: "仲介会社I",
-    mortgageBank: "りそな銀行",
-    raygetAccount: "",
-    lifeAccount: "",
-    msAccount: "GMOメイン",
+    assignee: ["清原", "横山"],
+    propertyName: "アクタス大濠レノア",
+    roomNumber: "403",
+    ownerName: "上原樹縁",
+    leadType: "テレアポ",
+    aAmount: 8150000,
+    exitAmount: 10700000,
+    commission: 335000,
+    profit: 2885000,
+    bcDeposit: 300000,
+    contractType: CONTRACT_TYPES.AB_BC,
+    aContractDate: "2025-07-30",
+    bcContractDate: "2025-08-30",
+    settlementDate: "2025-10-07",
+    buyerCompany: "トラストアライアンス（買仲）",
+    bCompany: B_COMPANIES.MS_COMPANY,
+    brokerCompany: BROKER_COMPANIES.REIJIT,
+    mortgageBank: "東京スター銀行",
+    account: "エムズ",
+    bankAccount: BANK_ACCOUNTS.MS.GMO_SUB,
     ownershipTransfer: true,
     accountTransfer: true,
     documentSent: true,
-    workplaceDM: true,
+    workplaceDM: false,
     transactionLedger: true,
-    managementCancel: true,
-    memo: "",
+    managementCancel: false,
+    memo: "※B案件 決済完了",
     businessStatus: BUSINESS_STATUS.SETTLEMENT_COMPLETED,
     documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
+    contractProgress: {
+      ab: createDefaultAbProgress(),
+      bc: createDefaultBcProgress(),
+    },
+    documentProgress: {
+      rental: createDefaultRentalDocuments(),
+      building: createDefaultBuildingDocuments(),
+      government: createDefaultGovernmentDocuments(),
+      bank: createDefaultBankDocuments(),
+    },
+    settlementProgress: {
+      statement: createDefaultStatementProgress(),
+      scrivener: createDefaultScrivenerProgress(),
+      mortgageBank: createDefaultMortgageBankProgress(),
+      postSettlement: createDefaultPostSettlementProgress(),
+    },
   },
   {
     id: 13,
-    propertyName: "墨田区物件",
-    roomNumber: "1313",
-    ownerName: "内田幸子",
-    assignee: "営業西村",
-    leadType: "反響",
-    aAmount: 7800000,
-    exitAmount: 8580000,
-    commission: 352000,
-    profit: 1132000,
-    bcDeposit: 430000,
-    contractType: "一般媒介",
-    aContractDate: "2025-01-17",
-    bcContractDate: "2025-01-23",
-    settlementDate: "2025-10-26",
-    buyerCompany: "株式会社J不動産",
-    bCompany: "ライフ",
-    brokerCompany: "仲介会社J",
-    mortgageBank: "三井住友銀行",
-    raygetAccount: "",
-    lifeAccount: "GMOサブ",
-    msAccount: "",
+    assignee: ["牟田"],
+    propertyName: "バージュアル武蔵小杉",
+    roomNumber: "205",
+    ownerName: "黒瀬有希",
+    leadType: "DM",
+    aAmount: 8160000,
+    exitAmount: 11500000,
+    commission: 300000,
+    profit: 3640000,
+    bcDeposit: 500000,
+    contractType: CONTRACT_TYPES.AB_BC,
+    aContractDate: "2025-07-15",
+    bcContractDate: "2025-08-01",
+    settlementDate: "2025-10-16",
+    buyerCompany: "アップルハウス",
+    bCompany: B_COMPANIES.MS_COMPANY,
+    brokerCompany: BROKER_COMPANIES.REIJIT,
+    mortgageBank: "auじぶん銀行",
+    account: "エムズ",
+    bankAccount: BANK_ACCOUNTS.MS.GMO_SUB,
     ownershipTransfer: true,
-    accountTransfer: false,
+    accountTransfer: true,
     documentSent: true,
     workplaceDM: false,
-    transactionLedger: true,
+    transactionLedger: false,
     managementCancel: false,
-    memo: "CB実施済み",
-    businessStatus: BUSINESS_STATUS.BC_CONFIRMED_CB_WAITING,
+    memo: "重調58,300円 ※B案件",
+    businessStatus: BUSINESS_STATUS.STATEMENT_COMPLETED_SETTLEMENT_WAITING,
     documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
+    contractProgress: {
+      ab: createDefaultAbProgress(),
+      bc: createDefaultBcProgress(),
+    },
+    documentProgress: {
+      rental: createDefaultRentalDocuments(),
+      building: createDefaultBuildingDocuments(),
+      government: createDefaultGovernmentDocuments(),
+      bank: createDefaultBankDocuments(),
+    },
+    settlementProgress: {
+      statement: createDefaultStatementProgress(),
+      scrivener: createDefaultScrivenerProgress(),
+      mortgageBank: createDefaultMortgageBankProgress(),
+      postSettlement: createDefaultPostSettlementProgress(),
+    },
   },
   {
     id: 14,
-    propertyName: "台東区物件",
-    roomNumber: "1414",
-    ownerName: "三浦健一",
-    assignee: "営業村上",
-    leadType: "テレアポ",
-    aAmount: 11000000,
-    exitAmount: 12100000,
-    commission: 484000,
-    profit: 1584000,
-    bcDeposit: 600000,
-    contractType: "専任媒介",
-    aContractDate: "2025-01-09",
-    bcContractDate: "2025-01-18",
-    settlementDate: "2025-10-16",
-    buyerCompany: "株式会社K不動産",
-    bCompany: "レイジット",
-    brokerCompany: "仲介会社K",
-    mortgageBank: "みずほ銀行",
-    raygetAccount: "GMOメイン",
-    lifeAccount: "",
-    msAccount: "",
+    assignee: ["國眼"],
+    propertyName: "メインステージ千歳烏山",
+    roomNumber: "501",
+    ownerName: "菊池健宏",
+    leadType: "紹介",
+    aAmount: 15580000,
+    exitAmount: 19900000,
+    commission: 100000,
+    profit: 4420000,
+    bcDeposit: 500000,
+    contractType: CONTRACT_TYPES.AB_BC,
+    aContractDate: "2025-07-01",
+    bcContractDate: "2025-07-01",
+    settlementDate: "2025-10-31",
+    buyerCompany: "",
+    bCompany: B_COMPANIES.MS_COMPANY,
+    brokerCompany: BROKER_COMPANIES.NBF,
+    mortgageBank: "楽天銀行",
+    account: "エムズ",
+    bankAccount: BANK_ACCOUNTS.MS.SUMISHIN,
     ownershipTransfer: true,
     accountTransfer: true,
     documentSent: true,
     workplaceDM: false,
-    transactionLedger: true,
+    transactionLedger: false,
     managementCancel: false,
-    memo: "精算書確認中",
+    memo: "",
     businessStatus: BUSINESS_STATUS.STATEMENT_COMPLETED_SETTLEMENT_WAITING,
     documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
+    contractProgress: {
+      ab: createDefaultAbProgress(),
+      bc: createDefaultBcProgress(),
+    },
+    documentProgress: {
+      rental: createDefaultRentalDocuments(),
+      building: createDefaultBuildingDocuments(),
+      government: createDefaultGovernmentDocuments(),
+      bank: createDefaultBankDocuments(),
+    },
+    settlementProgress: {
+      statement: createDefaultStatementProgress(),
+      scrivener: createDefaultScrivenerProgress(),
+      mortgageBank: createDefaultMortgageBankProgress(),
+      postSettlement: createDefaultPostSettlementProgress(),
+    },
   },
   {
     id: 15,
-    propertyName: "足立区物件",
-    roomNumber: "1515",
-    ownerName: "原田美香",
-    assignee: "営業太田",
-    leadType: "DM",
-    aAmount: 5800000,
-    exitAmount: 0,
-    commission: 0,
-    profit: 0,
-    bcDeposit: 0,
-    contractType: "専任媒介",
-    aContractDate: "2025-01-30",
-    bcContractDate: "",
-    settlementDate: "",
-    buyerCompany: "",
-    bCompany: "エムズ",
-    brokerCompany: "",
-    mortgageBank: "三菱UFJ銀行",
-    raygetAccount: "",
-    lifeAccount: "",
-    msAccount: "",
-    ownershipTransfer: false,
-    accountTransfer: false,
-    documentSent: false,
-    workplaceDM: false,
-    transactionLedger: false,
-    managementCancel: false,
-    memo: "物件調査中",
-    businessStatus: BUSINESS_STATUS.BC_UNCONFIRMED,
-    documentStatus: DOCUMENT_STATUS.REQUEST_WAITING,
-  },
-  {
-    id: 16,
-    propertyName: "葛飾区物件",
-    roomNumber: "1616",
-    ownerName: "松田勇",
-    assignee: "営業近藤",
-    leadType: "紹介",
-    aAmount: 9600000,
-    exitAmount: 10560000,
-    commission: 422000,
-    profit: 1382000,
-    bcDeposit: 530000,
-    contractType: "専任媒介",
-    aContractDate: "2025-01-11",
-    bcContractDate: "2025-01-21",
-    settlementDate: "2025-10-24",
-    buyerCompany: "株式会社L不動産",
-    bCompany: "ライフ",
-    brokerCompany: "仲介会社L",
-    mortgageBank: "りそな銀行",
-    raygetAccount: "",
-    lifeAccount: "GMOメイン",
-    msAccount: "",
-    ownershipTransfer: true,
-    accountTransfer: false,
-    documentSent: false,
-    workplaceDM: false,
-    transactionLedger: false,
-    managementCancel: false,
-    memo: "決済日確定",
-    businessStatus: BUSINESS_STATUS.SETTLEMENT_CONFIRMED_STATEMENT_WAITING,
-    documentStatus: DOCUMENT_STATUS.ACQUIRING,
-  },
-  {
-    id: 17,
-    propertyName: "江戸川区物件",
-    roomNumber: "1717",
-    ownerName: "井上智子",
-    assignee: "営業前田",
+    assignee: ["國眼"],
+    propertyName: "アドバンス新大阪ラシュレ",
+    roomNumber: "815",
+    ownerName: "石井辰弥",
     leadType: "反響",
-    aAmount: 8200000,
-    exitAmount: 9020000,
-    commission: 374000,
-    profit: 1194000,
-    bcDeposit: 450000,
-    contractType: "一般媒介",
-    aContractDate: "2025-01-07",
-    bcContractDate: "2025-01-14",
-    settlementDate: "2025-10-10",
-    buyerCompany: "株式会社M不動産",
-    bCompany: "レイジット",
-    brokerCompany: "仲介会社M",
-    mortgageBank: "三井住友銀行",
-    raygetAccount: "GMOサブ",
-    lifeAccount: "",
-    msAccount: "",
+    aAmount: 13800000,
+    exitAmount: 16800000,
+    commission: 521400,
+    profit: 3521400,
+    bcDeposit: 300000,
+    contractType: CONTRACT_TYPES.AB_BC,
+    aContractDate: "2025-09-26",
+    bcContractDate: "2025-09-26",
+    settlementDate: "2025-10-31",
+    buyerCompany: "GDR",
+    bCompany: B_COMPANIES.LIFE_INVEST,
+    brokerCompany: BROKER_COMPANIES.ESUKU,
+    mortgageBank: "ジャックス",
+    account: "ライフ",
+    bankAccount: BANK_ACCOUNTS.LIFE.GMO_MAIN,
     ownershipTransfer: true,
     accountTransfer: true,
     documentSent: true,
-    workplaceDM: true,
-    transactionLedger: true,
+    workplaceDM: false,
+    transactionLedger: false,
     managementCancel: true,
     memo: "",
-    businessStatus: BUSINESS_STATUS.SETTLEMENT_COMPLETED,
-    documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
-  },
-  {
-    id: 18,
-    propertyName: "北区物件",
-    roomNumber: "1818",
-    ownerName: "長谷川誠",
-    assignee: "営業横山",
-    leadType: "テレアポ",
-    aAmount: 10200000,
-    exitAmount: 11220000,
-    commission: 448000,
-    profit: 1468000,
-    bcDeposit: 560000,
-    contractType: "専任媒介",
-    aContractDate: "2025-01-16",
-    bcContractDate: "2025-01-27",
-    settlementDate: "2025-11-05",
-    buyerCompany: "株式会社N不動産",
-    bCompany: "エムズ",
-    brokerCompany: "仲介会社N",
-    mortgageBank: "みずほ銀行",
-    raygetAccount: "",
-    lifeAccount: "",
-    msAccount: "GMOメイン",
-    ownershipTransfer: false,
-    accountTransfer: false,
-    documentSent: false,
-    workplaceDM: false,
-    transactionLedger: false,
-    managementCancel: false,
-    memo: "契約準備中",
-    businessStatus: BUSINESS_STATUS.BC_CONFIRMED_CONTRACT_WAITING,
-    documentStatus: DOCUMENT_STATUS.ACQUIRING,
-  },
-  {
-    id: 19,
-    propertyName: "荒川区物件",
-    roomNumber: "1919",
-    ownerName: "野村康夫",
-    assignee: "営業福田",
-    leadType: "DM",
-    aAmount: 7500000,
-    exitAmount: 8250000,
-    commission: 330000,
-    profit: 1080000,
-    bcDeposit: 410000,
-    contractType: "専任媒介",
-    aContractDate: "2025-01-13",
-    bcContractDate: "2025-01-20",
-    settlementDate: "2025-10-19",
-    buyerCompany: "株式会社O不動産",
-    bCompany: "ライフ",
-    brokerCompany: "仲介会社O",
-    mortgageBank: "三菱UFJ銀行",
-    raygetAccount: "",
-    lifeAccount: "GMOサブ",
-    msAccount: "",
-    ownershipTransfer: true,
-    accountTransfer: true,
-    documentSent: true,
-    workplaceDM: false,
-    transactionLedger: false,
-    managementCancel: false,
-    memo: "決済準備完了",
     businessStatus: BUSINESS_STATUS.STATEMENT_COMPLETED_SETTLEMENT_WAITING,
     documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
-  },
-  {
-    id: 20,
-    propertyName: "大田区物件",
-    roomNumber: "2020",
-    ownerName: "岩田真理子",
-    assignee: "営業上田",
-    leadType: "紹介",
-    aAmount: 16000000,
-    exitAmount: 17600000,
-    commission: 660000,
-    profit: 2260000,
-    bcDeposit: 880000,
-    contractType: "専任媒介",
-    aContractDate: "2025-01-04",
-    bcContractDate: "2025-01-10",
-    settlementDate: "2025-01-08",
-    buyerCompany: "株式会社P不動産",
-    bCompany: "レイジット",
-    brokerCompany: "仲介会社P",
-    mortgageBank: "りそな銀行",
-    raygetAccount: "GMOメイン",
-    lifeAccount: "",
-    msAccount: "",
-    ownershipTransfer: true,
-    accountTransfer: true,
-    documentSent: true,
-    workplaceDM: true,
-    transactionLedger: true,
-    managementCancel: true,
-    memo: "",
-    businessStatus: BUSINESS_STATUS.SETTLEMENT_COMPLETED,
-    documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
-  },
-  // 8月決済
-  {
-    id: 21,
-    propertyName: "中野区物件B",
-    roomNumber: "2121",
-    ownerName: "永田浩二",
-    assignee: "営業河野",
-    leadType: "反響",
-    aAmount: 10800000,
-    exitAmount: 11880000,
-    commission: 475000,
-    profit: 1555000,
-    bcDeposit: 590000,
-    contractType: "専任媒介",
-    aContractDate: "2024-06-05",
-    bcContractDate: "2024-06-15",
-    settlementDate: "2024-08-10",
-    buyerCompany: "株式会社AC不動産",
-    bCompany: "レイジット",
-    brokerCompany: "仲介会社AC",
-    mortgageBank: "三井住友銀行",
-    raygetAccount: "GMOメイン",
-    lifeAccount: "",
-    msAccount: "",
-    ownershipTransfer: true,
-    accountTransfer: true,
-    documentSent: true,
-    workplaceDM: false,
-    transactionLedger: true,
-    managementCancel: false,
-    memo: "お盆前決済",
-    businessStatus: BUSINESS_STATUS.SETTLEMENT_COMPLETED,
-    documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
-  },
-  {
-    id: 22,
-    propertyName: "豊島区物件C",
-    roomNumber: "2222",
-    ownerName: "浅野友子",
-    assignee: "営業平野",
-    leadType: "テレアポ",
-    aAmount: 8100000,
-    exitAmount: 8910000,
-    commission: 356000,
-    profit: 1166000,
-    bcDeposit: 440000,
-    contractType: "一般媒介",
-    aContractDate: "2024-06-10",
-    bcContractDate: "2024-06-20",
-    settlementDate: "2024-08-20",
-    buyerCompany: "株式会社AD不動産",
-    bCompany: "エムズ",
-    brokerCompany: "仲介会社AD",
-    mortgageBank: "みずほ銀行",
-    raygetAccount: "",
-    lifeAccount: "",
-    msAccount: "GMOサブ",
-    ownershipTransfer: true,
-    accountTransfer: false,
-    documentSent: true,
-    workplaceDM: true,
-    transactionLedger: false,
-    managementCancel: false,
-    memo: "",
-    businessStatus: BUSINESS_STATUS.SETTLEMENT_COMPLETED,
-    documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
-  },
-  // 9月決済
-  {
-    id: 23,
-    propertyName: "板橋区物件B",
-    roomNumber: "2323",
-    ownerName: "坂本光男",
-    assignee: "営業金子",
-    leadType: "DM",
-    aAmount: 6800000,
-    exitAmount: 7480000,
-    commission: 299000,
-    profit: 979000,
-    bcDeposit: 370000,
-    contractType: "専任媒介",
-    aContractDate: "2024-07-05",
-    bcContractDate: "2024-07-15",
-    settlementDate: "2024-09-10",
-    buyerCompany: "株式会社AE不動産",
-    bCompany: "ライフ",
-    brokerCompany: "仲介会社AE",
-    mortgageBank: "三菱UFJ銀行",
-    raygetAccount: "",
-    lifeAccount: "GMOメイン",
-    msAccount: "",
-    ownershipTransfer: false,
-    accountTransfer: false,
-    documentSent: false,
-    workplaceDM: false,
-    transactionLedger: false,
-    managementCancel: false,
-    memo: "9月決算期",
-    businessStatus: BUSINESS_STATUS.SETTLEMENT_COMPLETED,
-    documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
-  },
-  {
-    id: 24,
-    propertyName: "江東区物件B",
-    roomNumber: "2424",
-    ownerName: "梅田千恵",
-    assignee: "営業古川",
-    leadType: "紹介",
-    aAmount: 15200000,
-    exitAmount: 16720000,
-    commission: 635000,
-    profit: 2155000,
-    bcDeposit: 830000,
-    contractType: "専任媒介",
-    aContractDate: "2024-07-10",
-    bcContractDate: "2024-07-20",
-    settlementDate: "2024-09-25",
-    buyerCompany: "株式会社AF不動産",
-    bCompany: "レイジット",
-    brokerCompany: "仲介会社AF",
-    mortgageBank: "りそな銀行",
-    raygetAccount: "GMOサブ",
-    lifeAccount: "",
-    msAccount: "",
-    ownershipTransfer: true,
-    accountTransfer: true,
-    documentSent: true,
-    workplaceDM: false,
-    transactionLedger: true,
-    managementCancel: true,
-    memo: "",
-    businessStatus: BUSINESS_STATUS.SETTLEMENT_COMPLETED,
-    documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
-  },
-  // 11月決済（10月は既存データ）
-  {
-    id: 25,
-    propertyName: "墨田区物件B",
-    roomNumber: "2525",
-    ownerName: "篠原正義",
-    assignee: "営業谷口",
-    leadType: "反響",
-    aAmount: 8300000,
-    exitAmount: 9130000,
-    commission: 365000,
-    profit: 1195000,
-    bcDeposit: 450000,
-    contractType: "一般媒介",
-    aContractDate: "2024-09-05",
-    bcContractDate: "2024-09-15",
-    settlementDate: "2024-11-10",
-    buyerCompany: "株式会社AG不動産",
-    bCompany: "エムズ",
-    brokerCompany: "仲介会社AG",
-    mortgageBank: "三井住友銀行",
-    raygetAccount: "",
-    lifeAccount: "",
-    msAccount: "GMOメイン",
-    ownershipTransfer: true,
-    accountTransfer: true,
-    documentSent: true,
-    workplaceDM: true,
-    transactionLedger: true,
-    managementCancel: false,
-    memo: "年末前決済",
-    businessStatus: BUSINESS_STATUS.SETTLEMENT_COMPLETED,
-    documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
-  },
-  {
-    id: 26,
-    propertyName: "台東区物件B",
-    roomNumber: "2626",
-    ownerName: "島田順子",
-    assignee: "営業杉本",
-    leadType: "テレアポ",
-    aAmount: 11300000,
-    exitAmount: 12430000,
-    commission: 497000,
-    profit: 1627000,
-    bcDeposit: 620000,
-    contractType: "専任媒介",
-    aContractDate: "2024-09-10",
-    bcContractDate: "2024-09-20",
-    settlementDate: "2024-11-20",
-    buyerCompany: "株式会社AH不動産",
-    bCompany: "ライフ",
-    brokerCompany: "仲介会社AH",
-    mortgageBank: "みずほ銀行",
-    raygetAccount: "",
-    lifeAccount: "GMOサブ",
-    msAccount: "",
-    ownershipTransfer: false,
-    accountTransfer: false,
-    documentSent: false,
-    workplaceDM: false,
-    transactionLedger: false,
-    managementCancel: false,
-    memo: "11月下旬予定",
-    businessStatus: BUSINESS_STATUS.SETTLEMENT_COMPLETED,
-    documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
-  },
-  // 12月決済
-  {
-    id: 27,
-    propertyName: "足立区物件B",
-    roomNumber: "2727",
-    ownerName: "矢野敏行",
-    assignee: "営業丸山",
-    leadType: "DM",
-    aAmount: 6200000,
-    exitAmount: 6820000,
-    commission: 273000,
-    profit: 893000,
-    bcDeposit: 340000,
-    contractType: "専任媒介",
-    aContractDate: "2024-10-05",
-    bcContractDate: "2024-10-15",
-    settlementDate: "2024-12-10",
-    buyerCompany: "株式会社AI不動産",
-    bCompany: "レイジット",
-    brokerCompany: "仲介会社AI",
-    mortgageBank: "三菱UFJ銀行",
-    raygetAccount: "GMOメイン",
-    lifeAccount: "",
-    msAccount: "",
-    ownershipTransfer: true,
-    accountTransfer: false,
-    documentSent: true,
-    workplaceDM: false,
-    transactionLedger: false,
-    managementCancel: false,
-    memo: "年内最終決済",
-    businessStatus: BUSINESS_STATUS.SETTLEMENT_COMPLETED,
-    documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
-  },
-  {
-    id: 28,
-    propertyName: "葛飾区物件B",
-    roomNumber: "2828",
-    ownerName: "西田香織",
-    assignee: "営業増田",
-    leadType: "紹介",
-    aAmount: 9700000,
-    exitAmount: 10670000,
-    commission: 427000,
-    profit: 1397000,
-    bcDeposit: 530000,
-    contractType: "専任媒介",
-    aContractDate: "2024-10-10",
-    bcContractDate: "2024-10-20",
-    settlementDate: "2024-12-20",
-    buyerCompany: "株式会社AJ不動産",
-    bCompany: "エムズ",
-    brokerCompany: "仲介会社AJ",
-    mortgageBank: "りそな銀行",
-    raygetAccount: "",
-    lifeAccount: "",
-    msAccount: "GMOサブ",
-    ownershipTransfer: true,
-    accountTransfer: true,
-    documentSent: true,
-    workplaceDM: false,
-    transactionLedger: true,
-    managementCancel: true,
-    memo: "年末決済",
-    businessStatus: BUSINESS_STATUS.SETTLEMENT_COMPLETED,
-    documentStatus: DOCUMENT_STATUS.ALL_ACQUIRED,
+    contractProgress: {
+      ab: createDefaultAbProgress(),
+      bc: createDefaultBcProgress(),
+    },
+    documentProgress: {
+      rental: createDefaultRentalDocuments(),
+      building: createDefaultBuildingDocuments(),
+      government: createDefaultGovernmentDocuments(),
+      bank: createDefaultBankDocuments(),
+    },
+    settlementProgress: {
+      statement: createDefaultStatementProgress(),
+      scrivener: createDefaultScrivenerProgress(),
+      mortgageBank: createDefaultMortgageBankProgress(),
+      postSettlement: createDefaultPostSettlementProgress(),
+    },
   },
 ];

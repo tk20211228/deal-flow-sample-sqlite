@@ -32,7 +32,7 @@ import { ja } from "date-fns/locale";
 interface Property {
   id: number;
   // 基本情報
-  assignee: string;
+  assignee: string[]; // 担当（複数可）
   propertyName: string;
   roomNumber: string;
   ownerName: string;
@@ -49,7 +49,7 @@ interface Property {
   contractType: string;
   aContractDate: string;
   bcContractDate: string;
-  settlementDate: string;
+  settlementDate: string | null; // 決済日（BC確定前はnull）
 
   // 関係者情報
   buyerCompany: string;
@@ -57,10 +57,8 @@ interface Property {
   brokerCompany: string;
   mortgageBank: string;
 
-  // 口座管理
-  raygetAccount: string;
-  lifeAccount: string;
-  msAccount: string;
+  // 口座管理（どの口座を使用するか）
+  account: "レイジット" | "ライフ" | "エムズ" | "";
 
   // その他管理項目
   ownershipTransfer: boolean;
@@ -71,9 +69,9 @@ interface Property {
   managementCancel: boolean;
   memo: string;
 
-  // ステータス
-  businessStatus: string;
-  documentStatus: string;
+  // ステータス（2つに分離）
+  businessStatus: string; // 業者ステータス（7段階）
+  documentStatus: string; // 書類ステータス（3段階）
 }
 
 interface PropertyDetailModalProps {
@@ -201,16 +199,13 @@ export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDe
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>担当 <span className="text-red-500">*</span></Label>
-            <Select defaultValue={property.assignee}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="営業田中">営業田中</SelectItem>
-                <SelectItem value="営業山田">営業山田</SelectItem>
-                <SelectItem value="営業鈴木">営業鈴木</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              {property.assignee.map((person, index) => (
+                <Badge key={index} variant="outline">
+                  {person}
+                </Badge>
+              ))}
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -254,7 +249,10 @@ export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDe
 
           <div className="space-y-2">
             <Label>決済日</Label>
-            <Input type="date" defaultValue={property.settlementDate} />
+            <Input
+              type="date"
+              defaultValue={property.settlementDate || ""}
+            />
             <p className="text-xs text-muted-foreground">
               曜日は自動表示されます。「○月予定」と入力することも可能です。
             </p>
@@ -598,48 +596,15 @@ export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDe
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label>レイジット口座</Label>
-                  <Select defaultValue={property.raygetAccount}>
+                  <Label>使用口座</Label>
+                  <Select defaultValue={property.account}>
                     <SelectTrigger>
                       <SelectValue placeholder="選択してください" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="GMOメイン">GMOメイン</SelectItem>
-                      <SelectItem value="GMOサブ">GMOサブ</SelectItem>
-                      <SelectItem value="住信">住信</SelectItem>
-                      <SelectItem value="近産">近産</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>エムズ口座</Label>
-                  <Select defaultValue={property.msAccount}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="選択してください" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="GMOメイン">GMOメイン</SelectItem>
-                      <SelectItem value="GMOサブ">GMOサブ</SelectItem>
-                      <SelectItem value="住信">住信</SelectItem>
-                      <SelectItem value="ペイペイ①">ペイペイ①</SelectItem>
-                      <SelectItem value="ペイペイ②">ペイペイ②</SelectItem>
-                      <SelectItem value="ペイペイ③">ペイペイ③</SelectItem>
-                      <SelectItem value="楽天①">楽天①</SelectItem>
-                      <SelectItem value="楽天②">楽天②</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>ライフ口座</Label>
-                  <Select defaultValue={property.lifeAccount}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="選択してください" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="GMOメイン">GMOメイン</SelectItem>
-                      <SelectItem value="GMOサブ">GMOサブ</SelectItem>
+                      <SelectItem value="レイジット">レイジット</SelectItem>
+                      <SelectItem value="ライフ">ライフ</SelectItem>
+                      <SelectItem value="エムズ">エムズ</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

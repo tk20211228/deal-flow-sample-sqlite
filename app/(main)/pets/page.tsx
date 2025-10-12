@@ -1,48 +1,13 @@
 import PetCard from "@/components/pet-card";
-import { Pet } from "../../../lib/types/pet";
+import { getPets } from "@/lib/data/pet";
 
-export default function PetsPage() {
-  const mockPets: Pet[] = [
-    {
-      id: "1",
-      name: "Buddy",
-      type: "dog",
-      hp: 100,
-      ownerId: "1",
-    },
-    {
-      id: "2",
-      name: "Whiskers",
-      type: "cat",
-      hp: 100,
-      ownerId: "1",
-    },
-    {
-      id: "3",
-      name: "Fluffy",
-      type: "dog",
-      hp: 100,
-      ownerId: "1",
-    },
-    {
-      id: "4",
-      name: "Max",
-      type: "cat",
-      hp: 100,
-      ownerId: "1",
-    },
-    {
-      id: "5",
-      name: "Bella",
-      type: "dog",
-      hp: 100,
-      ownerId: "1",
-    },
-  ];
+export default async function PetsPage() {
+  const pets = await getPets();
+
   return (
     <div className="container my-10">
       <div className="grid grid-cols-3 gap-4">
-        {mockPets.map((pet) => (
+        {pets.map((pet) => (
           <PetCard key={pet.id} pet={pet} />
         ))}
       </div>

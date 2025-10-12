@@ -1,6 +1,13 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(cp:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "shadcn"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }

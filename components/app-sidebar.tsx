@@ -31,6 +31,11 @@ import Logo from "@/public/logo.svg";
 import Image from "next/image";
 import Link from "next/link";
 
+// 現在の年月を取得（当月の月別管理へのリンク用）
+const now = new Date();
+const currentYear = now.getFullYear();
+const currentMonth = String(now.getMonth() + 1).padStart(2, "0");
+
 const data = {
   user: {
     name: "shadcn",
@@ -45,8 +50,18 @@ const data = {
     // },
     {
       title: "案件管理",
-      url: "/properties",
+      url: "#",
       icon: IconListDetails,
+      items: [
+        {
+          title: "業者確定前",
+          url: "/properties/unconfirmed",
+        },
+        {
+          title: "月別管理",
+          url: `/properties/monthly/${currentYear}/${currentMonth}`,
+        },
+      ],
     },
     // {
     //   title: "業者管理",
