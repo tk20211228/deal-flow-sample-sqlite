@@ -21,10 +21,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  CheckCircle2, X, ExternalLink
-} from "lucide-react";
+import { CheckCircle2, X } from "lucide-react";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 
@@ -88,20 +87,23 @@ const BUSINESS_STATUS = {
   BC_COMPLETED_SETTLEMENT_WAITING: "BC完了 決済日確定待ち",
   SETTLEMENT_CONFIRMED_STATEMENT_WAITING: "決済日確定 精算書待ち",
   STATEMENT_COMPLETED_SETTLEMENT_WAITING: "精算書完了 決済待ち",
-  SETTLEMENT_COMPLETED: "決済完了"
+  SETTLEMENT_COMPLETED: "決済完了",
 };
 
 const DOCUMENT_STATUS = {
   REQUEST_WAITING: "書類依頼待ち",
   ACQUIRING: "書類取得中",
-  ALL_ACQUIRED: "全書類取得完了"
+  ALL_ACQUIRED: "全書類取得完了",
 };
 
 // 書類進捗ステータス
 type DocumentProgress = "空欄" | "依頼" | "取得完了" | "書類なし";
 
-export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDetailModalProps) {
-
+export function PropertyDetailModal({
+  open,
+  onOpenChange,
+  property,
+}: PropertyDetailModalProps) {
   // 契約進捗のダミーデータ
   const [contractProgress] = useState({
     ab: {
@@ -110,37 +112,77 @@ export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDe
       sellerIdSaved: { checked: false },
     },
     bc: {
-      bcContractCreated: { checked: true, date: "2025/01/15 09:00", user: "鈴木" },
-      importantMattersCreated: { checked: true, date: "2025/01/15 11:30", user: "鈴木" },
+      bcContractCreated: {
+        checked: true,
+        date: "2025/01/15 09:00",
+        user: "鈴木",
+      },
+      importantMattersCreated: {
+        checked: true,
+        date: "2025/01/15 11:30",
+        user: "鈴木",
+      },
       bcContractSent: { checked: false },
       importantMattersSent: { checked: false },
       bcContractCbCompleted: { checked: false },
       importantMattersCbCompleted: { checked: false },
-    }
+    },
   });
 
   // 書類進捗のダミーデータ
   const [documentProgress] = useState({
     rental: {
-      rentalContract: { status: "取得完了" as DocumentProgress, date: "2025/01/12", user: "佐藤" },
-      managementContract: { status: "依頼" as DocumentProgress, date: "2025/01/13", user: "田中" },
+      rentalContract: {
+        status: "取得完了" as DocumentProgress,
+        date: "2025/01/12",
+        user: "佐藤",
+      },
+      managementContract: {
+        status: "依頼" as DocumentProgress,
+        date: "2025/01/13",
+        user: "田中",
+      },
     },
     building: {
       importantMatters: { status: "空欄" as DocumentProgress },
-      managementRules: { status: "依頼" as DocumentProgress, date: "2025/01/14", user: "山田" },
-      longTermPlan: { status: "取得完了" as DocumentProgress, date: "2025/01/15", user: "鈴木" },
-      generalMeeting: { status: "書類なし" as DocumentProgress, date: "2025/01/16", user: "伊藤" },
+      managementRules: {
+        status: "依頼" as DocumentProgress,
+        date: "2025/01/14",
+        user: "山田",
+      },
+      longTermPlan: {
+        status: "取得完了" as DocumentProgress,
+        date: "2025/01/15",
+        user: "鈴木",
+      },
+      generalMeeting: {
+        status: "書類なし" as DocumentProgress,
+        date: "2025/01/16",
+        user: "伊藤",
+      },
     },
     government: {
-      taxCertificate: { status: "取得完了" as DocumentProgress, date: "2025/01/17", user: "小林" },
+      taxCertificate: {
+        status: "取得完了" as DocumentProgress,
+        date: "2025/01/17",
+        user: "小林",
+      },
       buildingPlan: { status: "空欄" as DocumentProgress },
-      registryRecord: { status: "依頼" as DocumentProgress, date: "2025/01/18", user: "渡辺" },
+      registryRecord: {
+        status: "依頼" as DocumentProgress,
+        date: "2025/01/18",
+        user: "渡辺",
+      },
       useDistrict: { status: "空欄" as DocumentProgress },
       roadLedger: { status: "空欄" as DocumentProgress },
     },
     bank: {
-      loanCalculation: { status: "依頼" as DocumentProgress, date: "2025/01/19", user: "高橋" },
-    }
+      loanCalculation: {
+        status: "依頼" as DocumentProgress,
+        date: "2025/01/19",
+        user: "高橋",
+      },
+    },
   });
 
   if (!property) return null;
@@ -174,13 +216,31 @@ export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDe
   const getDocumentStatusBadge = (status: DocumentProgress) => {
     switch (status) {
       case "取得完了":
-        return <Badge variant="default" className="text-xs"><CheckCircle2 className="w-3 h-3 mr-1" />取得完了</Badge>;
+        return (
+          <Badge variant="default" className="text-xs">
+            <CheckCircle2 className="w-3 h-3 mr-1" />
+            取得完了
+          </Badge>
+        );
       case "書類なし":
-        return <Badge variant="outline" className="text-xs"><X className="w-3 h-3 mr-1" />書類なし</Badge>;
+        return (
+          <Badge variant="outline" className="text-xs">
+            <X className="w-3 h-3 mr-1" />
+            書類なし
+          </Badge>
+        );
       case "依頼":
-        return <Badge variant="secondary" className="text-xs">依頼中</Badge>;
+        return (
+          <Badge variant="secondary" className="text-xs">
+            依頼中
+          </Badge>
+        );
       default:
-        return <Badge variant="outline" className="text-xs">未依頼</Badge>;
+        return (
+          <Badge variant="outline" className="text-xs">
+            未依頼
+          </Badge>
+        );
     }
   };
 
@@ -198,7 +258,9 @@ export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDe
       <TabsContent value="basic" className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>担当 <span className="text-red-500">*</span></Label>
+            <Label>
+              担当 <span className="text-red-500">*</span>
+            </Label>
             <div className="flex gap-2">
               {property.assignee.map((person, index) => (
                 <Badge key={index} variant="outline">
@@ -209,7 +271,9 @@ export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDe
           </div>
 
           <div className="space-y-2">
-            <Label>物件名 <span className="text-red-500">*</span></Label>
+            <Label>
+              物件名 <span className="text-red-500">*</span>
+            </Label>
             <Input defaultValue={property.propertyName} />
           </div>
 
@@ -219,7 +283,9 @@ export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDe
           </div>
 
           <div className="space-y-2">
-            <Label>オーナー名 <span className="text-red-500">*</span></Label>
+            <Label>
+              オーナー名 <span className="text-red-500">*</span>
+            </Label>
             <Input defaultValue={property.ownerName} />
           </div>
 
@@ -249,10 +315,7 @@ export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDe
 
           <div className="space-y-2">
             <Label>決済日</Label>
-            <Input
-              type="date"
-              defaultValue={property.settlementDate || ""}
-            />
+            <Input type="date" defaultValue={property.settlementDate || ""} />
             <p className="text-xs text-muted-foreground">
               曜日は自動表示されます。「○月予定」と入力することも可能です。
             </p>
@@ -319,7 +382,9 @@ export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDe
           <div className="space-y-2">
             <Label>A契約日</Label>
             <Input type="date" defaultValue={property.aContractDate} />
-            <p className="text-xs text-muted-foreground">曜日は自動表示されます</p>
+            <p className="text-xs text-muted-foreground">
+              曜日は自動表示されます
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -351,7 +416,7 @@ export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDe
                     {key === "sellerIdSaved" && "売主身分証 保存完了"}
                   </Label>
                 </div>
-                {'date' in value && value.date && (
+                {"date" in value && value.date && (
                   <span className="text-xs text-muted-foreground">
                     {value.date} {value.user}
                   </span>
@@ -379,7 +444,7 @@ export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDe
                     {key === "importantMattersCbCompleted" && "重説CB完了"}
                   </Label>
                 </div>
-                {'date' in value && value.date && (
+                {"date" in value && value.date && (
                   <span className="text-xs text-muted-foreground">
                     {value.date} {value.user}
                   </span>
@@ -406,7 +471,7 @@ export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDe
                   </Label>
                   {getDocumentStatusBadge(value.status)}
                 </div>
-                {'date' in value && value.date && (
+                {"date" in value && value.date && (
                   <span className="text-xs text-muted-foreground">
                     {value.date} {value.user}
                   </span>
@@ -432,7 +497,7 @@ export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDe
                   </Label>
                   {getDocumentStatusBadge(value.status)}
                 </div>
-                {'date' in value && value.date && (
+                {"date" in value && value.date && (
                   <span className="text-xs text-muted-foreground">
                     {value.date} {value.user}
                   </span>
@@ -459,7 +524,7 @@ export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDe
                   </Label>
                   {getDocumentStatusBadge(value.status)}
                 </div>
-                {'date' in value && value.date && (
+                {"date" in value && value.date && (
                   <span className="text-xs text-muted-foreground">
                     {value.date} {value.user}
                   </span>
@@ -477,12 +542,10 @@ export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDe
             {Object.entries(documentProgress.bank).map(([key, value]) => (
               <div key={key} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Label>
-                    {key === "loanCalculation" && "ローン計算書"}
-                  </Label>
+                  <Label>{key === "loanCalculation" && "ローン計算書"}</Label>
                   {getDocumentStatusBadge(value.status)}
                 </div>
-                {'date' in value && value.date && (
+                {"date" in value && value.date && (
                   <span className="text-xs text-muted-foreground">
                     {value.date} {value.user}
                   </span>
@@ -611,7 +674,9 @@ export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDe
 
                 {/* 同日同口座の合計額表示 */}
                 <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground mb-2">同日同口座の出口金額合計</p>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    同日同口座の出口金額合計
+                  </p>
                   <p className="text-lg font-semibold">¥1,200万</p>
                   <p className="text-xs text-muted-foreground mt-1">
                     ※ 1億円を超える場合は警告が表示されます
@@ -669,30 +734,18 @@ export function PropertyDetailModal({ open, onOpenChange, property }: PropertyDe
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="min-w-[60vw] max-w-[1600px] max-h-[90vh] overflow-y-auto p-6">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-xl">{property.propertyName} {property.roomNumber}</span>
-              <Badge variant={getBusinessStatusColor(property.businessStatus)}>
-                {property.businessStatus}
-              </Badge>
-              <Badge variant={getDocumentStatusColor(property.documentStatus)}>
-                {property.documentStatus}
-              </Badge>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  window.open(`/properties/${property.id}`, '_blank');
-                }}
-              >
-                <ExternalLink className="h-4 w-4 mr-1" />
-                詳細ページで開く
-              </Button>
-            </div>
+          <DialogTitle className="flex items-center gap-3">
+            <span className="text-xl">
+              {property.propertyName} {property.roomNumber}
+            </span>
+            <Badge variant={getBusinessStatusColor(property.businessStatus)}>
+              {property.businessStatus}
+            </Badge>
+            <Badge variant={getDocumentStatusColor(property.documentStatus)}>
+              {property.documentStatus}
+            </Badge>
           </DialogTitle>
         </DialogHeader>
 

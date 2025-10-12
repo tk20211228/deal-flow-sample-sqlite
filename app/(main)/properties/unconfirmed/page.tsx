@@ -34,8 +34,10 @@ import {
   Property,
 } from "../data/property";
 import { MoreVertical, Eye, Edit } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function UnconfirmedPropertiesPage() {
+  const router = useRouter();
   const [editingMemo, setEditingMemo] = useState<{
     id: number;
     value: string;
@@ -89,11 +91,6 @@ export default function UnconfirmedPropertiesPage() {
     if (status === DOCUMENT_STATUS.ALL_ACQUIRED) return "default";
     if (status === DOCUMENT_STATUS.ACQUIRING) return "secondary";
     return "outline";
-  };
-
-  const handlePropertyClick = (property: Property) => {
-    setSelectedProperty(property);
-    setModalOpen(true);
   };
 
   const handleMemoSave = (propertyId: number) => {
@@ -385,14 +382,37 @@ export default function UnconfirmedPropertiesPage() {
                         )}
                       </TableCell>
                       <TableCell className="text-[10px] p-1 sticky right-0 bg-background">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-5 text-[9px] px-1"
-                          onClick={() => handlePropertyClick(property)}
-                        >
-                          詳細
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-5 w-5 p-0"
+                            >
+                              <MoreVertical className="h-3 w-3" />
+                              <span className="sr-only">操作メニュー</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                router.push(`/properties/unconfirmed/${property.id}`);
+                              }}
+                            >
+                              <Eye className="h-3 w-3" />
+                              詳細
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedProperty(property);
+                                setModalOpen(true);
+                              }}
+                            >
+                              <Edit className="h-3 w-3" />
+                              編集
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -402,7 +422,7 @@ export default function UnconfirmedPropertiesPage() {
           </CardContent>
         </Card>
 
-        {/* 案件詳細モーダル */}
+        {/* 案件編集モーダル */}
         <PropertyDetailModal
           open={modalOpen}
           onOpenChange={setModalOpen}
