@@ -365,11 +365,103 @@ export const userInsertSchema = createInsertSchema(users, {
 
 - 型は `lib/types` に作成する。例 `lib/types/profile.ts`
 - 型は原則 drizzle を使用し、Drizzle Schema から Type を生成する
+- 関数から型を生成しても良い。
 
 ```tsx
 import { users } from "@/drizzle/schemas/auth";
+import {
+  getActiveOrganization,
+  getOrganizationInvitations,
+} from "@/lib/data/organization";
 
 export type User = typeof users.$inferSelect;
+
+export type OrganizationMembers = Awaited<
+  ReturnType<typeof getOrganizationMembers>
+>;
+export type OrganizationInvitations = Awaited<
+  ReturnType<typeof getOrganizationInvitations>
+>[number];
+```
+
+#### SWRとルートハンドラー
+
+- SWRとルートハンドラーを組み合わせるときは、型を一致させる
+
+- /lib/data
+
+```ts
+export async function getOrganizationMembers(
+  organizationId: string,
+  membersLimit: number = 100
+) {
+  const result = await auth.api.listMembers({
+    query: { organizationId, limit: membersLimit, offset: 0 },
+    headers: await headers(),
+  });
+
+  return result;
+}
+```
+
+- /lib/types
+
+```ts
+export type OrganizationMembers = Awaited<
+  ReturnType<typeof getOrganizationMembers>
+>;
+```
+
+- /lib/swr
+
+```ts
+export const useOrganizationMembers = (organizationId: string | null) => {
+  const { data, error, isLoading, mutate } =
+    useSWR<OrganizationMembersResponse>(
+      organizationId ? `/api/organization/${organizationId}/members` : null,
+      fetcher
+    );
+
+  return {
+    data: data?.organizationMembers,
+    isLoading,
+    error,
+    mutate,
+  };
+};
+```
+
+- /api/route.ts
+
+```ts
+export async function GET(
+  _req: NextRequest,
+  ctx: RouteContext<"/api/organization/[organizationId]/members">
+): Promise<NextResponse<OrganizationMembersResponse>> {
+  const { organizationId } = await ctx.params;
+
+  // セッション確認
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    // メンバー一覧を取得
+    const data = await getOrganizationMembers(organizationId);
+
+    return NextResponse.json({ organizationMembers: data });
+  } catch (error) {
+    console.error("Failed to get organization members:", error);
+    return NextResponse.json(
+      { error: "Failed to get organization members" },
+      { status: 500 }
+    );
+  }
+}
 ```
 
 ## ユーザーインターフェイスの実装

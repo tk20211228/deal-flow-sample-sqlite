@@ -20,6 +20,7 @@ export function OrganizationsList({
   organizations,
   activeOrgId,
 }: OrganizationsListProps) {
+  const isDev = process.env.NODE_ENV !== "production";
   if (organizations.length === 0) {
     return (
       <Card>
@@ -46,7 +47,7 @@ export function OrganizationsList({
           return (
             <Link href={`/organization/${org.id}`} key={org.id}>
               <Card
-                className={`${isActive ? "ring-2 ring-primary" : ""} cursor-pointer hover:shadow-lg transition-shadow`}
+                className={`${isDev && isActive ? "ring-2 ring-primary" : ""} cursor-pointer hover:shadow-lg transition-shadow`}
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
@@ -59,7 +60,7 @@ export function OrganizationsList({
                     <OrganizationCardMenu
                       organizationId={org.id}
                       organizationName={org.name}
-                      isActive={isActive}
+                      isActive={isDev ? isActive : undefined}
                       isOwner={isOwner}
                     />
                   </div>
@@ -78,7 +79,7 @@ export function OrganizationsList({
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      {isActive && (
+                      {isDev && isActive && (
                         <Badge variant="default" className="text-xs">
                           アクティブ
                         </Badge>

@@ -28,7 +28,7 @@ import { DeleteOrganizationDialog } from "./delete-organization-dialog";
 interface OrganizationCardMenuProps {
   organizationId: string;
   organizationName: string;
-  isActive: boolean;
+  isActive?: boolean;
   isOwner: boolean;
 }
 
@@ -75,7 +75,7 @@ export function OrganizationCardMenu({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {!isActive && (
+          {isActive !== undefined && !isActive && (
             <DropdownMenuItem onClick={handleSetActive}>
               <CheckCircle className="mr-2 h-4 w-4" />
               アクティブにする
