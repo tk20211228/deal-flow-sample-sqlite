@@ -23,7 +23,6 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-  Building2,
   Users,
   Settings,
   CheckCircle,
@@ -216,12 +215,11 @@ export function OrganizationsList() {
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
-          <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
           <p className="text-muted-foreground text-center mb-4">
             まだ組織に参加していません
           </p>
           <p className="text-sm text-muted-foreground text-center">
-            上のフォームから新しい組織を作成するか、招待を受けてください
+            新しい組織を作成するか、招待を受けてください
           </p>
         </CardContent>
       </Card>
@@ -243,17 +241,7 @@ export function OrganizationsList() {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
-                      <CardTitle className="flex items-center gap-2">
-                        {org.logo ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={org.logo}
-                            alt={org.name}
-                            className="h-6 w-6 rounded"
-                          />
-                        ) : (
-                          <Building2 className="h-5 w-5" />
-                        )}
+                      <CardTitle>
                         {org.name}
                       </CardTitle>
                       <CardDescription className="font-mono text-xs">

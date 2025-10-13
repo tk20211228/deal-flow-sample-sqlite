@@ -98,7 +98,9 @@ export default function OrganizationMembersPage() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<"member" | "owner" | "admin">("member");
+  const [inviteRole, setInviteRole] = useState<"member" | "owner" | "admin">(
+    "member"
+  );
   const [sendingInvite, setSendingInvite] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -213,7 +215,10 @@ export default function OrganizationMembersPage() {
   };
 
   // 役割を更新
-  const handleRoleChange = async (memberId: string, newRole: "member" | "owner" | "admin") => {
+  const handleRoleChange = async (
+    memberId: string,
+    newRole: "member" | "owner" | "admin"
+  ) => {
     if (!activeOrg) return;
 
     try {
@@ -366,7 +371,10 @@ export default function OrganizationMembersPage() {
                         <Select
                           value={member.role}
                           onValueChange={(value) =>
-                            handleRoleChange(member.id, value as "member" | "owner" | "admin")
+                            handleRoleChange(
+                              member.id,
+                              value as "member" | "owner" | "admin"
+                            )
                           }
                           disabled={member.role === "owner"}
                         >
@@ -488,7 +496,9 @@ export default function OrganizationMembersPage() {
                 <Label htmlFor="role">役割</Label>
                 <Select
                   value={inviteRole}
-                  onValueChange={(value) => setInviteRole(value as "member" | "owner" | "admin")}
+                  onValueChange={(value) =>
+                    setInviteRole(value as "member" | "owner" | "admin")
+                  }
                   disabled={sendingInvite}
                 >
                   <SelectTrigger id="role">

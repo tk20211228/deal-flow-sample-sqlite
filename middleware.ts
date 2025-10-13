@@ -13,11 +13,20 @@ const publicRoutes = [
 
 export async function middleware(request: NextRequest) {
   const sessionCookie = getSessionCookie(request);
-  const isPrivateRoute = !publicRoutes.includes(request.nextUrl.pathname);
+  const currentPath = request.nextUrl.pathname;
+  const isPrivateRoute = !publicRoutes.includes(currentPath);
 
+  // 認証が必要なページへの未認証アクセス
   if (!sessionCookie && isPrivateRoute) {
-    // return NextResponse.redirect(new URL("/login?redirect=" + request.url, request.url));
-    return NextResponse.redirect(new URL("/login", request.url));
+    const loginPageUrl = request.nextUrl.clone();
+    loginPageUrl.pathname = "/login";
+    return NextResponse.redirect(loginPageUrl);
+  }
+  // 認証済みユーザーがログインページにアクセス
+  if (sessionCookie && currentPath === "/login") {
+    const defaultDashboardUrl = request.nextUrl.clone();
+    defaultDashboardUrl.pathname = "/properties/unconfirmed";
+    return NextResponse.redirect(defaultDashboardUrl);
   }
 
   return NextResponse.next();

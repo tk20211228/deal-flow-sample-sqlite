@@ -247,6 +247,17 @@ export function SiteHeader() {
             </Button>
           </div>
         )}
+
+        {pathname === "/organization" && (
+          <div className="ml-auto flex items-center gap-2">
+            <Button asChild>
+              <Link href="/organization/new">
+                <Plus />
+                新しい組織を作成
+              </Link>
+            </Button>
+          </div>
+        )}
       </div>
     </header>
   );
