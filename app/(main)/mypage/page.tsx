@@ -1,4 +1,3 @@
-import { UserCard } from "@/components/user-card";
 import { verifySession } from "@/lib/sesstion";
 
 export default async function page() {
@@ -8,7 +7,6 @@ export default async function page() {
   return (
     <div className="container">
       <h1 className="text-2xl font-bold">My Page</h1>
-      <UserCard user={user} />
     </div>
   );
 }
