@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
+import { get } from "@vercel/edge-config";
+import { MaintenanceConfig } from "@/lib/types/maintenance";
+import { handleMaintenanceMode } from "@/lib/maintenance";
 
 const publicRoutes = [
   "/login",
@@ -9,6 +12,7 @@ const publicRoutes = [
   "/reset-password",
   "/verify-email",
   "/",
+  "/maintenance",
 ];
 
 export async function middleware(request: NextRequest) {
@@ -22,6 +26,10 @@ export async function middleware(request: NextRequest) {
     loginPageUrl.pathname = "/login";
     return NextResponse.redirect(loginPageUrl);
   }
+  // メンテナンスモード
+  const maintenance = await get<MaintenanceConfig>("maintenance");
+  await handleMaintenanceMode(request, maintenance ?? null);
+
   // 認証済みユーザーがログインページにアクセス
   if (sessionCookie && currentPath === "/login") {
     const defaultDashboardUrl = request.nextUrl.clone();
