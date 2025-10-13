@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   createOrganizationAction,
   setActiveOrganizationAction,
-} from "@/app/(main)/organization/action";
+} from "@/lib/actions/organization";
 import { generateId } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,10 +112,7 @@ export function CreateOrganizationForm() {
           >
             クリア
           </Button>
-          <Button
-            type="submit"
-            disabled={isLoading || !name}
-          >
+          <Button type="submit" disabled={isLoading || !name}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

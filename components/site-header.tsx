@@ -21,16 +21,29 @@ import { Button } from "@/components/ui/button";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronsUpDown, Plus } from "lucide-react";
+import { useOrganizationName } from "@/lib/swr/organization";
 
-interface BreadcrumbItem {
+interface BreadcrumbItemType {
   label: string;
   href: string;
   isActive: boolean;
+  organizationId?: string;
 }
 
 export function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
+
+  // パスから組織IDを抽出
+  const paths = pathname.split("/").filter((path) => path);
+  const organizationIndex = paths.indexOf("organization");
+  const organizationId =
+    organizationIndex !== -1 && paths[organizationIndex + 1]
+      ? paths[organizationIndex + 1]
+      : null;
+
+  // 組織情報を取得
+  const { organization } = useOrganizationName(organizationId);
 
   // 年の選択肢を生成（現在年の前後2年）
   const currentYear = new Date().getFullYear();
@@ -40,9 +53,9 @@ export function SiteHeader() {
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
 
   // パスからパンくずリストを生成
-  const getBreadcrumbs = (): BreadcrumbItem[] => {
+  const getBreadcrumbs = (): BreadcrumbItemType[] => {
     const paths = pathname.split("/").filter((path) => path);
-    const breadcrumbs: BreadcrumbItem[] = [];
+    const breadcrumbs: BreadcrumbItemType[] = [];
 
     // パスを解析してパンくずを生成
     let href = "";
@@ -51,6 +64,8 @@ export function SiteHeader() {
 
       // パス名を日本語に変換
       let label = path;
+      let isOrganizationId = false;
+
       switch (path) {
         case "properties":
           label = "案件管理";
@@ -80,6 +95,11 @@ export function SiteHeader() {
           ) {
             label = `${parseInt(path)}月`;
           }
+          // 組織IDの場合
+          else if (paths[index - 1] === "organization" && path !== "new") {
+            isOrganizationId = true;
+            label = organization?.name || path;
+          }
           // IDっぽい場合（その他の数字）
           else if (/^\d+$/.test(path)) {
             label = "詳細";
@@ -91,6 +111,7 @@ export function SiteHeader() {
         label,
         href,
         isActive: index === paths.length - 1,
+        ...(isOrganizationId && { organizationId: path }),
       });
     });
 

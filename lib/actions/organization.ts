@@ -85,7 +85,7 @@ export async function setActiveOrganizationAction(organizationId: string) {
     }
 
     // キャッシュを再検証
-    revalidatePath("/members");
+    revalidatePath("/organization");
 
     return { success: true };
   } catch (error) {
@@ -189,7 +189,7 @@ export async function deleteOrganizationAction(organizationId: string) {
     });
 
     // キャッシュを再検証
-    revalidatePath("/members");
+    revalidatePath("/organization");
 
     return { success: true };
   } catch (error) {
@@ -216,7 +216,7 @@ export async function leaveOrganizationAction(organizationId: string) {
     });
 
     // キャッシュを再検証
-    revalidatePath("/members");
+    revalidatePath("/organization");
 
     return { success: true };
   } catch (error) {

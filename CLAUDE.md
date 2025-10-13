@@ -315,8 +315,13 @@ export default function Page() {
 - `RouteContext` はグローバルに存在するのでインポートしないでください。
 
 ```tsx
-export async function GET({ params }: RouteContext<"/api/users/[id]">) {
-  const { id } = await params;
+
+import type { NextRequest } from 'next/server'
+
+export async function GET(_req: NextRequest, ctx: RouteContext<'/users/[id]'>) {
+  const { id } = await ctx.params
+  return Response.json({ id })
+}
 
   // セッション確認が必要
   const session = await auth.api.getSession({
