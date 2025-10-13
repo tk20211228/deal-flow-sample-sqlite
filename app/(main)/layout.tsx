@@ -1,15 +1,12 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { verifySession } from "@/lib/sesstion";
 
 export default async function Layout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await verifySession();
-  const user = session.user;
   return (
     <SidebarProvider
       style={
@@ -19,7 +16,7 @@ export default async function Layout({
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" user={user} />
+      <AppSidebar variant="inset" />
       <SidebarInset className="">
         <SiteHeader />
 

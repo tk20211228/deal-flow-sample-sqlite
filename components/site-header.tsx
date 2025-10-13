@@ -22,6 +22,8 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronsUpDown, Plus } from "lucide-react";
 import { useOrganizationName } from "@/lib/swr/organization";
+import { useSession } from "@/lib/swr/session";
+import { AppConfig } from "@/app.config";
 
 interface BreadcrumbItemType {
   label: string;
@@ -33,6 +35,8 @@ interface BreadcrumbItemType {
 export function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
+  const { user } = useSession();
+  const isSystemOwner = AppConfig.systemOwnerIds.includes(user?.id || "");
 
   // パスから組織IDを抽出
   const paths = pathname.split("/").filter((path) => path);
@@ -269,7 +273,7 @@ export function SiteHeader() {
           </div>
         )}
 
-        {pathname === "/organization" && (
+        {pathname === "/organization" && isSystemOwner && (
           <div className="ml-auto flex items-center gap-2">
             <Button asChild>
               <Link href="/organization/new">

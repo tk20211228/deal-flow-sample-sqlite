@@ -1,3 +1,8 @@
-import { authClient } from "@/lib/auth-client";
+import { verifySession } from "@/lib/sesstion";
 
-export type User = (typeof authClient.$Infer.Session)["user"];
+export type VerifiedSession = Awaited<ReturnType<typeof verifySession>>;
+
+export interface VerifiedSessionResponse {
+  verifiedSession?: VerifiedSession;
+  error?: string;
+}

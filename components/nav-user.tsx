@@ -8,7 +8,6 @@ import {
   IconUserCircle,
 } from "@tabler/icons-react";
 
-import { User } from "@/lib/types/user";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -27,16 +26,18 @@ import {
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 import { getAvatarUrl } from "@/lib/avatar";
+import { useSession } from "@/lib/swr/session";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { ModeSwitcher } from "./mode-switcher";
 
-export function NavUser({ user }: { user: User }) {
+export function NavUser() {
+  const { user } = useSession();
   const router = useRouter();
   const { isMobile } = useSidebar();
   const { text, url } = getAvatarUrl({
-    email: user.email,
+    email: user?.email,
   });
 
   const [isPending, startTransition] = useTransition();
@@ -67,9 +68,9 @@ export function NavUser({ user }: { user: User }) {
                 <AvatarFallback>{text}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <span className="truncate font-medium">{user?.name}</span>
                 <span className="text-muted-foreground truncate text-xs">
-                  {user.email}
+                  {user?.email}
                 </span>
               </div>
               <IconDotsVertical className="ml-auto size-4" />
@@ -88,9 +89,9 @@ export function NavUser({ user }: { user: User }) {
                   <AvatarFallback>{text}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
+                  <span className="truncate font-medium">{user?.name}</span>
                   <span className="text-muted-foreground truncate text-xs">
-                    {user.email}
+                    {user?.email}
                   </span>
                 </div>
               </div>
