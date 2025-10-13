@@ -4,6 +4,7 @@ import type {
   OrganizationInvitationsResponse,
   OrganizationMembersResponse,
   OrganizationNameResponse,
+  OrganizationsWithUserRoleResponse,
 } from "@/lib/types/organization";
 
 export const useOrganizationName = (organizationId: string | null) => {
@@ -43,6 +44,19 @@ export const useOrganizationInvitations = (organizationId: string | null) => {
 
   return {
     data: data?.organizationInvitations,
+    isLoading,
+    error,
+    mutate,
+  };
+};
+
+export const useOrganizationsWithUserRole = () => {
+  const { data, error, isLoading, mutate } =
+    useSWR<OrganizationsWithUserRoleResponse>("/api/organization", fetcher);
+
+  return {
+    organizations: data?.organizations,
+    activeOrgId: data?.activeOrgId,
     isLoading,
     error,
     mutate,

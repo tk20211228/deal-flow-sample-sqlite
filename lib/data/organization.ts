@@ -11,17 +11,7 @@ export async function getOrganizations() {
   return result || [];
 }
 
-export async function getOrganizationsWithUserRole() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  const userId = session?.user?.id;
-
-  if (!userId) {
-    return [];
-  }
-
+export async function getOrganizationsWithUserRole(userId: string) {
   const organizations = await auth.api.listOrganizations({
     headers: await headers(),
   });

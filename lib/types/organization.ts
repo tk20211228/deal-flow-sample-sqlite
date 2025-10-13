@@ -36,3 +36,9 @@ export interface OrganizationInvitationsResponse {
   organizationInvitations?: OrganizationInvitations[];
   error?: string;
 }
+
+export interface OrganizationsWithUserRoleResponse {
+  organizations?: OrganizationWithUserRole[];
+  activeOrgId?: string | null;
+  error?: string;
+}
