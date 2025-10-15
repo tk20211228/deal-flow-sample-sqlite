@@ -264,7 +264,7 @@ export function SiteHeader() {
 
         {pathname === "/properties/unconfirmed" && (
           <div className="ml-auto flex items-center gap-2">
-            <Button asChild>
+            <Button size="sm" asChild>
               <Link href="/properties/new">
                 <Plus />
                 新規案件登録
@@ -275,7 +275,7 @@ export function SiteHeader() {
 
         {pathname === "/organization" && isSystemOwner && (
           <div className="ml-auto flex items-center gap-2">
-            <Button asChild>
+            <Button size="sm" asChild>
               <Link href="/organization/new">
                 <Plus />
                 新しい組織を作成

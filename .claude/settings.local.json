@@ -5,7 +5,8 @@
       "Bash(tail:*)",
       "Bash(wc:*)",
       "Bash(pnpm dev)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(mkdir:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
