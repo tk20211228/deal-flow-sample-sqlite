@@ -49,7 +49,7 @@ export function MonthlyPropertiesClient({
   properties,
 }: MonthlyPropertiesClientProps) {
   const router = useRouter();
-  const [selectedAccount, setSelectedAccount] = useState<string>("レイジット");
+  const [selectedAccount, setSelectedAccount] = useState<string>("サンプル企業C");
   const [editingMemo, setEditingMemo] = useState<{
     id: number;
     value: string;
@@ -519,9 +519,9 @@ export function MonthlyPropertiesClient({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="レイジット">レイジット</SelectItem>
-                        <SelectItem value="ライフ">ライフ</SelectItem>
-                        <SelectItem value="エムズ">エムズ</SelectItem>
+                        <SelectItem value="サンプル企業C">サンプル企業C</SelectItem>
+                        <SelectItem value="サンプル企業B">サンプル企業B</SelectItem>
+                        <SelectItem value="サンプル企業A">サンプル企業A</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
