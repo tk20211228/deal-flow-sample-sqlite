@@ -146,6 +146,9 @@ importers:
       drizzle-orm:
         specifier: ^0.44.5
         version: 0.44.6(@libsql/client@0.15.15)(kysely@0.28.8)(postgres@3.4.7)
+      drizzle-zod:
+        specifier: ^0.8.3
+        version: 0.8.3(drizzle-orm@0.44.6(@libsql/client@0.15.15)(kysely@0.28.8)(postgres@3.4.7))(zod@4.1.12)
       embla-carousel-react:
         specifier: ^8.6.0
         version: 8.6.0(react@19.1.0)
@@ -2911,6 +2914,12 @@ packages:
         optional: true
       sqlite3:
         optional: true
+
+  drizzle-zod@0.8.3:
+    resolution: {integrity: sha512-66yVOuvGhKJnTdiqj1/Xaaz9/qzOdRJADpDa68enqS6g3t0kpNkwNYjUuaeXgZfO/UWuIM9HIhSlJ6C5ZraMww==}
+    peerDependencies:
+      drizzle-orm: '>=0.36.0'
+      zod: ^3.25.0 || ^4.0.0
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -7368,6 +7377,11 @@ snapshots:
       '@libsql/client': 0.15.15
       kysely: 0.28.8
       postgres: 3.4.7
+
+  drizzle-zod@0.8.3(drizzle-orm@0.44.6(@libsql/client@0.15.15)(kysely@0.28.8)(postgres@3.4.7))(zod@4.1.12):
+    dependencies:
+      drizzle-orm: 0.44.6(@libsql/client@0.15.15)(kysely@0.28.8)(postgres@3.4.7)
+      zod: 4.1.12
 
   dunder-proto@1.0.1:
     dependencies:

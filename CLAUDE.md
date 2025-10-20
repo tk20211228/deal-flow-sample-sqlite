@@ -24,7 +24,6 @@
 
 ```ts
 export async function getFruit(id: string) {
-  // return db.select().from(fruits).where(eq(fruits.id, id));
   return db.query.fruits.findFirst({ where: eq(fruits.id, id) });
 }
 ```
